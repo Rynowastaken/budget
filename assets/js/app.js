@@ -799,6 +799,44 @@ function rgbToHex(r, g, b) {
   return `#${[r, g, b].map((part) => clamp(Math.round(part), 0, 255).toString(16).padStart(2, "0")).join("")}`;
 }
 
+function srgbToLinear(channel) {
+  const value = channel / 255;
+  return value <= 0.04045
+    ? value / 12.92
+    : ((value + 0.055) / 1.055) ** 2.4;
+}
+
+function rgbToOklab(r, g, b) {
+  const red = srgbToLinear(r);
+  const green = srgbToLinear(g);
+  const blue = srgbToLinear(b);
+  const l = 0.4122214708 * red + 0.5363325363 * green + 0.0514459929 * blue;
+  const m = 0.2119034982 * red + 0.6806995451 * green + 0.1073969566 * blue;
+  const s = 0.0883024619 * red + 0.2817188376 * green + 0.6299787005 * blue;
+  const lRoot = Math.cbrt(l);
+  const mRoot = Math.cbrt(m);
+  const sRoot = Math.cbrt(s);
+  const lightness = 0.2104542553 * lRoot + 0.793617785 * mRoot - 0.0040720468 * sRoot;
+  const a = 1.9779984951 * lRoot - 2.428592205 * mRoot + 0.4505937099 * sRoot;
+  const labB = 0.0259040371 * lRoot + 0.7827717662 * mRoot - 0.808675766 * sRoot;
+  const chroma = Math.hypot(a, labB);
+  const hue = (Math.atan2(labB, a) * 180 / Math.PI + 360) % 360;
+  return { lightness, a, b: labB, chroma, hue };
+}
+
+function colorDistance(first, second) {
+  return Math.hypot(
+    first.lightness - second.lightness,
+    first.a - second.a,
+    first.b - second.b,
+  );
+}
+
+function hueDistance(first, second) {
+  const difference = Math.abs(first - second);
+  return Math.min(difference, 360 - difference);
+}
+
 function mix(a, b, amount) {
   const ca = hexToRgb(a);
   const cb = hexToRgb(b);
@@ -848,38 +886,127 @@ function extractPalette(dataUrl) {
       const canvas = document.createElement("canvas");
       const ctx = canvas.getContext("2d", { willReadFrequently: true });
       const size = 96;
-      canvas.width = size;
-      canvas.height = size;
-      ctx.drawImage(image, 0, 0, size, size);
-      const pixels = ctx.getImageData(0, 0, size, size).data;
+      const scale = Math.min(1, size / Math.max(image.width, image.height));
+      canvas.width = Math.max(1, Math.round(image.width * scale));
+      canvas.height = Math.max(1, Math.round(image.height * scale));
+      ctx.drawImage(image, 0, 0, canvas.width, canvas.height);
+      const pixels = ctx.getImageData(0, 0, canvas.width, canvas.height).data;
       const buckets = new Map();
+      let sampledPixels = 0;
 
-      for (let i = 0; i < pixels.length; i += 16) {
+      for (let i = 0; i < pixels.length; i += 4) {
         const r = pixels[i];
         const g = pixels[i + 1];
         const b = pixels[i + 2];
         const a = pixels[i + 3];
-        if (a < 200) continue;
-        const saturation = Math.max(r, g, b) - Math.min(r, g, b);
-        const key = `${Math.round(r / 32) * 32},${Math.round(g / 32) * 32},${Math.round(b / 32) * 32}`;
-        const current = buckets.get(key) || { r: 0, g: 0, b: 0, count: 0, score: 0 };
+        if (a < 160) continue;
+        const key = `${Math.floor(r / 24)},${Math.floor(g / 24)},${Math.floor(b / 24)}`;
+        const current = buckets.get(key) || { r: 0, g: 0, b: 0, count: 0 };
         current.r += r;
         current.g += g;
         current.b += b;
         current.count += 1;
-        current.score += saturation + 18;
         buckets.set(key, current);
+        sampledPixels += 1;
       }
 
-      const colors = [...buckets.values()]
-        .map((bucket) => ({
-          color: rgbToHex(bucket.r / bucket.count, bucket.g / bucket.count, bucket.b / bucket.count),
-          score: bucket.count * bucket.score,
-        }))
-        .sort((a, b) => b.score - a.score)
-        .map((item) => item.color);
+      if (!sampledPixels || !buckets.size) {
+        resolve([...defaults.palette]);
+        return;
+      }
 
-      resolve([...colors.slice(0, 5), ...defaults.palette].slice(0, 5));
+      const candidates = [...buckets.values()]
+        .map((bucket) => {
+          const r = bucket.r / bucket.count;
+          const g = bucket.g / bucket.count;
+          const b = bucket.b / bucket.count;
+          return {
+            color: rgbToHex(r, g, b),
+            population: bucket.count / sampledPixels,
+            ...rgbToOklab(r, g, b),
+          };
+        })
+        .filter((candidate) => candidate.population >= 0.0005)
+        .sort((first, second) => second.population - first.population);
+
+      const chromatic = candidates.filter(
+        (candidate) => candidate.chroma >= 0.035
+          && candidate.lightness >= 0.18
+          && candidate.lightness <= 0.93,
+      );
+
+      function choose(pool, score, selected = [], minimumDistance = 0.085) {
+        return pool
+          .filter((candidate) => selected.every((color) => colorDistance(candidate, color) >= minimumDistance))
+          .map((candidate) => ({ candidate, score: score(candidate) }))
+          .sort((first, second) => second.score - first.score)[0]?.candidate;
+      }
+
+      let primary = choose(
+        chromatic.filter((candidate) => candidate.lightness >= 0.4 && candidate.lightness <= 0.86),
+        (candidate) => {
+          const lightnessFit = 1 - Math.min(0.6, Math.abs(candidate.lightness - 0.66));
+          return (candidate.chroma ** 1.45) * (candidate.population ** 0.22) * lightnessFit;
+        },
+      );
+
+      if (!primary) {
+        primary = choose(
+          candidates.filter((candidate) => candidate.lightness >= 0.3 && candidate.lightness <= 0.88),
+          (candidate) => candidate.population * (0.25 + candidate.chroma),
+        );
+      }
+
+      let accent = primary && choose(
+        chromatic.filter((candidate) => candidate.lightness >= 0.3 && candidate.lightness <= 0.9),
+        (candidate) => {
+          const separation = 0.25 + 1.5 * Math.min(1, hueDistance(candidate.hue, primary.hue) / 90);
+          const brightnessFit = 1 - Math.min(0.55, Math.abs(candidate.lightness - 0.7));
+          return (candidate.chroma ** 1.15) * (candidate.population ** 0.14) * separation * brightnessFit;
+        },
+        [primary],
+        0.1,
+      );
+
+      let secondary = primary && choose(
+        chromatic.filter((candidate) => candidate.lightness >= 0.2 && candidate.lightness <= 0.58),
+        (candidate) => (
+          (0.2 + candidate.chroma)
+          * (candidate.population ** 0.38)
+          * (1.1 - candidate.lightness)
+        ),
+        [primary, ...(accent ? [accent] : [])],
+        0.075,
+      );
+
+      const primaryColor = primary?.color || defaults.palette[0];
+      const primaryLab = primary || rgbToOklab(...Object.values(hexToRgb(primaryColor)));
+
+      if (!accent) {
+        accent = {
+          color: defaults.palette[1],
+          ...rgbToOklab(...Object.values(hexToRgb(defaults.palette[1]))),
+        };
+      }
+      if (!secondary) {
+        const derived = mix(primaryColor, "#17121b", primaryLab.lightness < 0.52 ? 0.35 : 0.62);
+        secondary = { color: derived, ...rgbToOklab(...Object.values(hexToRgb(derived))) };
+      }
+
+      const neutral = choose(
+        candidates.filter((candidate) => candidate.lightness >= 0.72 && candidate.lightness <= 0.96),
+        (candidate) => candidate.population * (1.1 - Math.min(candidate.chroma, 0.3)),
+        [primaryLab, accent, secondary],
+        0.06,
+      );
+
+      resolve([
+        primaryColor,
+        accent.color,
+        secondary.color,
+        defaults.palette[3],
+        neutral?.color || defaults.palette[4],
+      ]);
     };
     image.onerror = () => resolve(defaults.palette);
     image.src = dataUrl;
