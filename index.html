@@ -1,0 +1,327 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Budget</title>
+    <script>
+      window.tailwind = window.tailwind || {};
+      tailwind.config = {
+        theme: {
+          extend: {
+            fontFamily: {
+              sans: ["Inter", "ui-sans-serif", "system-ui", "sans-serif"],
+            },
+          },
+        },
+      };
+    </script>
+    <script src="/vendor/tailwindcss-3.4.17.js"></script>
+    <script src="/vendor/lucide-1.24.0.min.js"></script>
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260718-20" />
+  </head>
+  <body class="min-h-screen">
+    <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
+      <form id="loginForm" class="w-full rounded-lg glass p-5">
+        <div class="mb-2 flex items-center gap-3">
+          <img id="authLogo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="" class="h-14 w-14 shrink-0 rounded-[20px] border border-white/15 bg-white/10 object-cover shadow-sm" />
+          <p class="text-sm font-medium" style="color: var(--muted)">Open a local profile or create a new one.</p>
+          <button id="changeServerAuth" class="android-only focus-ring icon-control ml-auto shrink-0 rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Change server" title="Change server">
+            <i data-lucide="server-cog" aria-hidden="true"></i>
+          </button>
+        </div>
+        <label class="mt-5 block">
+          <span class="text-sm font-semibold" style="color: var(--muted)">Saved profiles</span>
+          <select id="profileSelect" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold">
+            <option value="">New profile</option>
+          </select>
+        </label>
+        <label class="mt-4 block">
+          <span class="text-sm font-semibold" style="color: var(--muted)">Profile name</span>
+          <input id="profileName" type="text" maxlength="32" autocomplete="username" required class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold" />
+        </label>
+        <label class="mt-4 block">
+          <span class="text-sm font-semibold" style="color: var(--muted)">PIN</span>
+          <input id="profilePin" type="password" maxlength="24" autocomplete="current-password" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold" />
+        </label>
+        <label class="remember-row mt-4 cursor-pointer rounded-lg p-3">
+          <span>
+            <span class="block text-sm font-semibold">Remember me</span>
+            <span class="block text-xs font-medium" style="color: var(--muted)">Open this profile automatically on this device.</span>
+          </span>
+          <span class="relative shrink-0">
+            <input id="rememberLogin" type="checkbox" />
+            <span class="remember-switch" aria-hidden="true"></span>
+          </span>
+        </label>
+        <p id="authMessage" class="mt-3 min-h-5 text-sm font-semibold" style="color: var(--danger)"></p>
+        <div class="mt-3 flex justify-end">
+          <button class="focus-ring icon-control rounded-lg text-white shadow-sm" style="background: var(--primary)" aria-label="Open profile" title="Open profile">
+            <i data-lucide="log-in" aria-hidden="true"></i>
+          </button>
+        </div>
+      </form>
+    </section>
+
+    <main id="appShell" class="mx-auto hidden min-h-screen w-full max-w-7xl flex-col gap-4 px-3 py-4 sm:gap-5 sm:px-6 sm:py-5 lg:px-8">
+      <header class="flex flex-row items-center justify-between gap-3 rounded-lg glass p-3 sm:p-4">
+        <div class="min-w-0 flex-1">
+          <div class="flex min-w-0 items-center gap-3">
+            <img id="serverLogo" src="data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///ywAAAAAAQABAAACAUwAOw==" alt="" class="h-12 w-12 shrink-0 rounded-[18px] border border-white/15 bg-white/10 object-cover shadow-sm sm:h-14 sm:w-14 sm:rounded-[20px]" />
+            <p id="greetingText" class="min-w-0 truncate text-lg leading-tight sm:text-xl"><span id="todayLabel">Hi! </span><span id="activeProfileLabel"></span></p>
+          </div>
+          <p id="appMessage" class="mt-2 hidden text-sm font-semibold"></p>
+        </div>
+        <div class="relative flex shrink-0 items-center justify-end">
+          <input id="backgroundInput" type="file" accept="image/*" class="sr-only" />
+          <div id="headerMenu" class="relative max-w-[52vw] sm:max-w-none">
+            <button id="headerMenuToggle" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Open menu" title="Open menu" aria-expanded="false" aria-controls="headerMenuPanel">
+              <i data-lucide="menu" aria-hidden="true"></i>
+            </button>
+            <div id="headerMenuPanel" class="header-menu-panel flex-wrap justify-end" aria-hidden="true">
+              <button id="uploadBackground" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Upload background" title="Upload background">
+                <i data-lucide="image-up" aria-hidden="true"></i>
+              </button>
+              <button id="clearBackground" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Clear background" title="Clear background">
+                <i data-lucide="image-minus" aria-hidden="true"></i>
+              </button>
+              <button id="resetData" class="focus-ring icon-control rounded-lg text-white shadow-sm" style="background: var(--danger)" type="button" aria-label="Reset profile data" title="Reset profile data">
+                <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+              </button>
+              <button id="switchProfile" class="danger-control focus-ring icon-control rounded-lg border shadow-sm" type="button" aria-label="Log out" title="Log out">
+                <i data-lucide="log-out" aria-hidden="true"></i>
+              </button>
+              <button id="changeServer" class="android-only focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Change server" title="Change server">
+                <i data-lucide="server-cog" aria-hidden="true"></i>
+              </button>
+            </div>
+          </div>
+        </div>
+      </header>
+
+      <section class="grid gap-5">
+        <div class="grid gap-5">
+          <article class="rounded-lg glass p-5">
+            <p class="text-sm font-semibold" style="color: var(--muted)">Today left</p>
+            <p id="dailyRemaining" class="mt-3 text-3xl font-semibold tabular-nums"></p>
+            <div class="mt-4 h-2 overflow-hidden rounded-full bg-black/10">
+              <div id="dailyBar" class="h-full rounded-full transition-all" style="background: var(--primary)"></div>
+            </div>
+          </article>
+        </div>
+
+        <nav class="grid grid-cols-2 gap-2 rounded-lg glass p-2" role="tablist" aria-label="Budget sections">
+          <button id="overviewTab" class="tab-button focus-ring rounded-lg px-3 py-2 text-sm font-semibold" type="button" role="tab" aria-selected="true" aria-controls="overviewPanel" data-tab-target="overviewPanel">
+            <i data-lucide="wallet-cards" aria-hidden="true"></i>
+            <span>Overview</span>
+          </button>
+          <button id="activityTab" class="tab-button focus-ring rounded-lg px-3 py-2 text-sm font-semibold" type="button" role="tab" aria-selected="false" aria-controls="activityPanel" data-tab-target="activityPanel">
+            <i data-lucide="receipt-text" aria-hidden="true"></i>
+            <span>Activity</span>
+          </button>
+        </nav>
+
+        <section id="overviewPanel" class="grid gap-5" role="tabpanel" aria-labelledby="overviewTab">
+          <div class="grid gap-5 sm:grid-cols-2">
+            <article class="rounded-lg glass p-5">
+              <p class="text-sm font-semibold" style="color: var(--muted)">Total left</p>
+              <p id="totalRemaining" class="mt-3 text-3xl font-semibold tabular-nums"></p>
+              <div class="mt-4 h-2 overflow-hidden rounded-full bg-black/10">
+                <div id="totalBar" class="h-full rounded-full transition-all" style="background: var(--accent)"></div>
+              </div>
+            </article>
+            <article class="rounded-lg glass p-5">
+              <p class="text-sm font-semibold" style="color: var(--muted)">Spent today</p>
+              <p id="spentToday" class="mt-3 text-3xl font-semibold tabular-nums"></p>
+              <p id="rolloverStatus" class="mt-3 text-sm font-semibold" style="color: var(--muted)"></p>
+            </article>
+          </div>
+
+          <form id="settingsForm" class="rounded-lg glass p-5">
+            <details id="quotaDetails" open>
+              <summary id="quotaDetailsSummary" class="focus-ring flex cursor-pointer items-center justify-between gap-3 rounded-xl px-1 py-1" aria-expanded="true" aria-controls="quotaDetailsContent">
+                <span>
+                  <span class="block text-sm font-semibold">Quota</span>
+                  <span id="quotaSummary" class="block text-xs font-medium" style="color: var(--muted)"></span>
+                </span>
+                <span class="icon-control quota-chevron rounded-lg border border-black/10 bg-white/75" aria-hidden="true">
+                  <i data-lucide="chevron-down"></i>
+                </span>
+              </summary>
+              <div id="quotaDetailsContent" class="quota-details-content">
+                <div class="mt-4">
+                <div class="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+                  <label class="block">
+                    <span class="text-sm font-semibold" style="color: var(--muted)">Daily quota</span>
+                    <input id="dailyQuota" type="number" min="0" step="0.01" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold tabular-nums" />
+                  </label>
+                  <label class="block">
+                    <span class="text-sm font-semibold" style="color: var(--muted)">Today quota</span>
+                    <input id="todayQuota" type="number" min="0" step="0.01" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold tabular-nums" />
+                  </label>
+                  <label class="block">
+                    <span class="text-sm font-semibold" style="color: var(--muted)">Total amount</span>
+                    <input id="totalAmount" type="number" min="0" step="0.01" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold tabular-nums" />
+                  </label>
+                  <label class="block">
+                    <span class="text-sm font-semibold" style="color: var(--muted)">Currency</span>
+                    <select id="currencyCode" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold">
+                      <option value="USD">USD</option>
+                      <option value="TWD">TWD</option>
+                      <option value="JPY">JPY</option>
+                      <option value="EUR">EUR</option>
+                      <option value="GBP">GBP</option>
+                      <option value="CAD">CAD</option>
+                      <option value="AUD">AUD</option>
+                      <option value="CNY">CNY</option>
+                      <option value="HKD">HKD</option>
+                      <option value="KRW">KRW</option>
+                      <option value="SGD">SGD</option>
+                      <option value="THB">THB</option>
+                    </select>
+                  </label>
+                </div>
+                <label class="mt-4 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-black/10 bg-white/65 p-3">
+                  <span>
+                    <span class="block text-sm font-semibold">Auto rollover</span>
+                    <span class="block text-xs font-medium" style="color: var(--muted)">Unused daily money carries into the next day.</span>
+                  </span>
+                  <input id="rolloverEnabled" type="checkbox" class="h-5 w-5 accent-[var(--primary)]" />
+                </label>
+                <div class="mt-4 flex justify-end">
+                  <button class="focus-ring icon-control rounded-lg text-white shadow-sm" style="background: var(--primary)" aria-label="Save budget" title="Save budget">
+                    <i data-lucide="save" aria-hidden="true"></i>
+                  </button>
+                </div>
+                </div>
+              </div>
+            </details>
+          </form>
+        </section>
+      </section>
+
+      <section id="activityPanel" class="hidden grid flex-1 gap-5" role="tabpanel" aria-labelledby="activityTab">
+        <div id="activityLayout" class="activity-layout grid gap-5 lg:items-start">
+          <section class="rounded-lg glass p-5">
+            <div class="flex items-center justify-between gap-3">
+              <h2 class="text-lg font-semibold">Activity</h2>
+              <button id="toggleExpenseForm" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Add expense" title="Add expense" aria-expanded="false" aria-controls="expenseForm">
+                <i data-lucide="plus" aria-hidden="true"></i>
+              </button>
+            </div>
+            <div class="activity-controls mt-4">
+              <div class="max-w-sm">
+                <p class="text-sm font-semibold" style="color: var(--muted)">Activity date</p>
+                <div class="mt-2 flex items-center gap-2">
+                  <button id="activityPrevDay" class="focus-ring icon-control shrink-0 rounded-lg border border-black/10 bg-white/75" type="button" aria-label="Previous day" title="Previous day">
+                    <i data-lucide="chevron-left" aria-hidden="true"></i>
+                  </button>
+                  <button id="activityDateToggle" class="focus-ring flex min-w-0 flex-1 items-center justify-between gap-3 rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-left text-base font-semibold" type="button" aria-expanded="false" aria-label="Choose activity date. Swipe left for the next day or right for the previous day.">
+                    <span class="flex min-w-0 items-center gap-2">
+                      <i data-lucide="calendar-days" class="shrink-0" aria-hidden="true"></i>
+                      <span id="activityDateLabel" class="truncate"></span>
+                    </span>
+                    <i data-lucide="chevron-down" class="shrink-0" aria-hidden="true"></i>
+                  </button>
+                  <button id="activityNextDay" class="focus-ring icon-control shrink-0 rounded-lg border border-black/10 bg-white/75" type="button" aria-label="Next day" title="Next day">
+                    <i data-lucide="chevron-right" aria-hidden="true"></i>
+                  </button>
+                </div>
+                <div id="activityCalendar" class="mt-3 hidden rounded-lg border border-black/10 bg-white/80 p-3 shadow-sm">
+                  <div class="flex items-center justify-between gap-3">
+                    <button id="activityPrevMonth" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75" type="button" aria-label="Previous month" title="Previous month">
+                      <i data-lucide="chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <p id="activityMonthLabel" class="text-sm font-semibold"></p>
+                    <button id="activityNextMonth" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75" type="button" aria-label="Next month" title="Next month">
+                      <i data-lucide="chevron-right" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <div class="mt-3 grid grid-cols-7 gap-1 text-center text-xs font-semibold" style="color: var(--muted)">
+                    <span>Sun</span>
+                    <span>Mon</span>
+                    <span>Tue</span>
+                    <span>Wed</span>
+                    <span>Thu</span>
+                    <span>Fri</span>
+                    <span>Sat</span>
+                  </div>
+                  <div id="activityCalendarGrid" class="mt-2 grid grid-cols-7 gap-1"></div>
+                </div>
+              </div>
+              <div class="activity-heatmap-shell">
+                <div id="activityHeatmapViewport" class="activity-heatmap-viewport" tabindex="0" aria-label="Expense activity heatmap. Pinch with two fingers to zoom, then swipe to navigate.">
+                  <div id="activityHeatmap" class="activity-heatmap" aria-label="Expense activity over the last 30 weeks"></div>
+                </div>
+              </div>
+            </div>
+            <div id="emptyState" class="mt-6 rounded-lg border border-dashed border-black/20 bg-white/55 p-8 text-center text-sm font-semibold" style="color: var(--muted)">
+              No expenses yet.
+            </div>
+            <ul id="expenseList" class="mt-4 grid gap-3"></ul>
+          </section>
+
+          <form id="expenseForm" class="hidden rounded-lg glass p-5">
+            <div>
+              <h2 id="expenseFormTitle" class="text-lg font-semibold">New expense</h2>
+              <p id="expenseSummary" class="mt-1 text-sm font-medium" style="color: var(--muted)"></p>
+            </div>
+            <div class="mt-5 grid gap-4">
+              <label class="block">
+                <span class="text-sm font-semibold" style="color: var(--muted)">Amount</span>
+                <input id="expenseAmount" type="number" min="0.01" step="0.01" required class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold tabular-nums" />
+              </label>
+              <label class="block">
+                <span class="text-sm font-semibold" style="color: var(--muted)">Name</span>
+                <input id="expenseName" type="text" maxlength="48" placeholder="Lunch, transit, coffee" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base" />
+                <div id="expenseNameSuggestions" class="mt-3 flex flex-wrap gap-2"></div>
+              </label>
+              <div class="max-w-sm">
+                <p class="text-sm font-semibold" style="color: var(--muted)">Date</p>
+                <button id="expenseDateToggle" class="focus-ring mt-2 flex w-full items-center justify-between gap-3 rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-left text-base font-semibold" type="button" aria-expanded="false">
+                  <span class="flex min-w-0 items-center gap-2">
+                    <i data-lucide="calendar-days" class="shrink-0" aria-hidden="true"></i>
+                    <span id="expenseDateLabel" class="truncate"></span>
+                  </span>
+                  <i data-lucide="chevron-down" class="shrink-0" aria-hidden="true"></i>
+                </button>
+                <div id="expenseCalendar" class="mt-3 hidden rounded-lg border border-black/10 bg-white/80 p-3 shadow-sm">
+                  <div class="flex items-center justify-between gap-3">
+                    <button id="expensePrevMonth" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75" type="button" aria-label="Previous month" title="Previous month">
+                      <i data-lucide="chevron-left" aria-hidden="true"></i>
+                    </button>
+                    <p id="expenseMonthLabel" class="text-sm font-semibold"></p>
+                    <button id="expenseNextMonth" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75" type="button" aria-label="Next month" title="Next month">
+                      <i data-lucide="chevron-right" aria-hidden="true"></i>
+                    </button>
+                  </div>
+                  <div class="mt-3 grid grid-cols-7 gap-1 text-center text-xs font-semibold" style="color: var(--muted)">
+                    <span>Sun</span>
+                    <span>Mon</span>
+                    <span>Tue</span>
+                    <span>Wed</span>
+                    <span>Thu</span>
+                    <span>Fri</span>
+                    <span>Sat</span>
+                  </div>
+                  <div id="expenseCalendarGrid" class="mt-2 grid grid-cols-7 gap-1"></div>
+                </div>
+              </div>
+            </div>
+            <div class="mt-5 flex justify-end gap-2">
+              <button id="cancelExpenseEdit" class="danger-control focus-ring icon-control hidden rounded-lg border shadow-sm" type="button" aria-label="Cancel expense" title="Cancel expense">
+                <i data-lucide="x" aria-hidden="true"></i>
+              </button>
+              <button id="expenseSubmit" class="focus-ring icon-control rounded-lg text-white shadow-sm" style="background: var(--primary)" aria-label="Add expense" title="Add expense">
+                <i data-lucide="plus" aria-hidden="true"></i>
+              </button>
+            </div>
+          </form>
+
+        </div>
+      </section>
+    </main>
+
+    <script src="/assets/js/app.js?v=20260718-20"></script>
+  </body>
+</html>

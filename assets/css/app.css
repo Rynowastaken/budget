@@ -1,0 +1,864 @@
+:root {
+  --bg: #f6f8f4;
+  --surface: 255 255 255;
+  --text: #15201d;
+  --muted: #66736d;
+  --primary: #1f7a64;
+  --accent: #d38f35;
+  --danger: #b84c4c;
+  --ring: rgba(31, 122, 100, 0.32);
+}
+
+* {
+  letter-spacing: 0;
+}
+
+body {
+  color: var(--text);
+  background:
+    linear-gradient(rgba(246, 248, 244, 0.86), rgba(246, 248, 244, 0.86)),
+    var(--bg);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+body.has-bg {
+  background:
+    linear-gradient(rgba(15, 20, 18, 0.52), rgba(15, 20, 18, 0.52)),
+    var(--custom-bg);
+  background-size: cover;
+  background-position: center;
+  background-attachment: fixed;
+}
+
+.glass {
+  background: rgba(var(--surface), 0.88);
+  backdrop-filter: blur(18px);
+  box-shadow: 0 20px 70px rgba(20, 31, 28, 0.16);
+}
+
+.focus-ring:focus-visible {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+input,
+button,
+select {
+  min-height: 44px;
+}
+
+.icon-control {
+  align-items: center;
+  display: inline-flex;
+  height: 44px;
+  justify-content: center;
+  width: 44px;
+}
+
+.icon-control svg {
+  height: 20px;
+  width: 20px;
+}
+    
+
+/* CSDC-inspired glass interface */
+:root {
+  --bg-void: #141018;
+  --foreground: #f7f1f6;
+  --fg-secondary: rgba(247, 241, 246, 0.72);
+  --muted: rgba(247, 241, 246, 0.56);
+  --faint: rgba(247, 241, 246, 0.38);
+  --primary: #f0a8c8;
+  --accent: #e8b86d;
+  --danger: #f07178;
+  --pink-soft: rgba(240, 168, 200, 0.14);
+  --pink-ring: rgba(240, 168, 200, 0.42);
+  --glass-1: rgba(12, 10, 14, 0.34);
+  --glass-2: rgba(14, 12, 16, 0.46);
+  --glass-border: rgba(255, 255, 255, 0.12);
+  --glass-border-hi: rgba(255, 255, 255, 0.18);
+  --glass-hover-bg: rgba(255, 255, 255, 0.07);
+  --server-bg: none;
+  --ring: var(--pink-ring);
+}
+
+body {
+  background: var(--bg-void);
+  color: var(--foreground);
+  font-family: Inter, ui-sans-serif, system-ui, sans-serif;
+  margin: 0;
+  overflow-y: scroll;
+}
+
+body::before,
+body::after {
+  content: "";
+  inset: 0;
+  pointer-events: none;
+  position: fixed;
+}
+
+body::before {
+  background:
+    linear-gradient(180deg, rgba(12, 10, 14, 0.48), rgba(12, 10, 14, 0.76)),
+    var(--server-bg);
+  background-position: center;
+  background-size: cover;
+  filter: saturate(125%);
+  z-index: -2;
+}
+
+body.has-bg::before {
+  background:
+    linear-gradient(180deg, rgba(12, 10, 14, 0.68), rgba(12, 10, 14, 0.86)),
+    radial-gradient(ellipse 80% 60% at 50% 0%, rgba(240, 168, 200, 0.18), transparent 55%),
+    var(--custom-bg);
+  background-position: center;
+  background-size: cover;
+  filter: brightness(0.9) saturate(130%);
+}
+
+body::after {
+  background: linear-gradient(180deg, rgba(20, 16, 24, 0.12), rgba(20, 16, 24, 0.68));
+  z-index: -1;
+}
+
+.glass {
+  background: linear-gradient(rgba(22, 16, 28, 0.08), rgba(22, 16, 28, 0.08)), var(--glass-1);
+  border: 1px solid var(--glass-border);
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
+  backdrop-filter: blur(18px) saturate(170%);
+}
+
+header.glass {
+  background: transparent;
+  border-color: transparent;
+  box-shadow: none;
+  backdrop-filter: none;
+  min-height: 52px;
+}
+
+#appShell {
+  max-width: 72rem;
+  padding-top: 1rem;
+}
+
+.hidden {
+  display: none !important;
+}
+
+#authScreen {
+  align-items: center;
+  box-sizing: border-box;
+  display: flex;
+  min-height: 100vh;
+  margin: 0 auto;
+  max-width: 28rem;
+  padding: 2rem 1rem;
+  width: 100%;
+}
+
+#loginForm {
+  box-sizing: border-box;
+  padding: 1.25rem;
+  width: 100%;
+}
+
+#loginForm label {
+  display: block;
+  margin-top: 1rem;
+}
+
+#loginForm input,
+#loginForm select {
+  box-sizing: border-box;
+  display: block;
+  margin-top: 0.5rem;
+  width: 100%;
+}
+
+#rememberLogin {
+  appearance: none !important;
+  background: transparent !important;
+  border: 0 !important;
+  height: 1px !important;
+  margin: 0 !important;
+  min-height: 0 !important;
+  opacity: 0 !important;
+  padding: 0 !important;
+  pointer-events: none;
+  position: absolute;
+  width: 1px !important;
+}
+
+.remember-row {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07) !important;
+  border: 1px solid rgba(255, 255, 255, 0.12) !important;
+  display: flex !important;
+  gap: 0.75rem;
+  justify-content: space-between;
+}
+
+.remember-switch {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  border-radius: 999px;
+  display: inline-flex;
+  height: 30px;
+  padding: 3px;
+  transition: background 0.18s ease, border-color 0.18s ease;
+  width: 54px;
+}
+
+.remember-switch::after {
+  background: rgba(247, 241, 246, 0.72);
+  border-radius: 999px;
+  content: "";
+  display: block;
+  height: 22px;
+  transform: translateX(0);
+  transition: transform 0.18s ease, background 0.18s ease;
+  width: 22px;
+}
+
+#rememberLogin:checked + .remember-switch {
+  background: var(--control-bg);
+  border-color: var(--control-border);
+}
+
+#rememberLogin:checked + .remember-switch::after {
+  background: var(--control-text);
+  transform: translateX(24px);
+}
+
+#rememberLogin:focus-visible + .remember-switch {
+  outline: 3px solid var(--ring);
+  outline-offset: 2px;
+}
+
+body.android-webview #appShell {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 2.25rem);
+}
+
+body.android-webview #authScreen {
+  padding-top: calc(env(safe-area-inset-top, 0px) + 2rem);
+}
+
+#greetingText {
+  color: var(--foreground);
+  font-weight: 800;
+  text-shadow: 0 1px 12px rgba(0, 0, 0, 0.32);
+}
+
+#activeProfileLabel {
+  color: var(--primary);
+}
+
+article.glass,
+form.glass,
+section.glass,
+#loginForm {
+  border-radius: 20px;
+}
+
+input,
+select {
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  color: var(--foreground);
+  transition: background 0.18s ease, border-color 0.18s ease, box-shadow 0.18s ease;
+}
+
+input:hover,
+select:hover {
+  background: rgba(255, 255, 255, 0.12) !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+}
+
+input:focus,
+select:focus {
+  background: rgba(255, 255, 255, 0.13) !important;
+  border-color: var(--primary) !important;
+  box-shadow: 0 0 0 3px var(--pink-soft);
+}
+
+select {
+  background-color: #1a1420 !important;
+  color: #f7f1f6 !important;
+  color-scheme: dark;
+}
+
+select option {
+  background-color: #1a1420;
+  color: #f7f1f6;
+}
+
+select option:checked,
+select option:hover {
+  background-color: #f0a8c8;
+  color: #2b1722;
+}
+
+.icon-control {
+  background: rgba(255, 255, 255, 0.08);
+  border-color: rgba(255, 255, 255, 0.14);
+  color: var(--muted);
+  min-height: 32px;
+  height: 36px;
+  width: 36px;
+  transition: background 0.16s ease, color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.icon-control:hover {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-border-hi);
+  color: var(--foreground);
+  transform: translateY(-1px);
+}
+
+button[style*="--primary"],
+.icon-control[style*="--primary"] {
+  color: #2b1722;
+}
+
+#dailyRemaining,
+#totalRemaining,
+#spentToday {
+  color: var(--foreground);
+  font-size: clamp(1.55rem, 2vw, 2.25rem);
+}
+
+#expenseList li {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+  border-radius: 16px;
+  backdrop-filter: blur(12px) saturate(140%);
+}
+
+#expenseList li:hover {
+  background: rgba(255, 255, 255, 0.11) !important;
+}
+
+.expense-actions-desktop {
+  display: none;
+}
+
+.expense-entry-amount {
+  justify-self: end;
+  white-space: nowrap;
+}
+
+.expense-entry-main {
+  background: inherit;
+  border-radius: inherit;
+  position: relative;
+  transform: translateX(var(--expense-swipe-x, 0));
+  transition: transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  z-index: 1;
+}
+
+@media (max-width: 639px) {
+  .expense-entry-main {
+    touch-action: pan-y;
+  }
+}
+
+.expense-entry.is-swipe-dragging .expense-entry-main {
+  transition: none;
+}
+
+.expense-entry.is-swiped .expense-entry-main {
+  transform: translateX(-92px);
+}
+
+.expense-swipe-actions {
+  align-items: center;
+  display: none;
+  gap: 8px;
+  height: 100%;
+  justify-content: center;
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: 0;
+  top: 0;
+  transform: translateX(18px);
+  transition: opacity 0.18s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 92px;
+}
+
+.expense-entry.is-swiped .expense-swipe-actions {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateX(0);
+}
+
+@media (max-width: 639px) {
+  .expense-swipe-actions {
+    display: flex;
+  }
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .expense-swipe-actions {
+    display: none;
+  }
+
+  .expense-actions-desktop {
+    display: flex;
+    flex-shrink: 0;
+    opacity: 0;
+    overflow: hidden;
+    pointer-events: none;
+    transform: translateX(6px);
+    transition: opacity 0.16s ease, transform 0.2s ease, width 0.22s cubic-bezier(0.22, 1, 0.36, 1);
+    width: 0;
+  }
+
+  .expense-entry:hover .expense-actions-desktop,
+  .expense-entry:focus-within .expense-actions-desktop {
+    opacity: 1;
+    pointer-events: auto;
+    transform: translateX(0);
+    width: 80px;
+  }
+}
+
+.expense-entry.is-entering,
+.expense-suggestion.is-entering {
+  animation: added-item-enter 0.34s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes added-item-enter {
+  from {
+    opacity: 0;
+    transform: translateY(10px) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+#emptyState,
+label:has(#rolloverEnabled) {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.activity-heatmap-shell {
+  max-width: 420px;
+  min-width: 0;
+  width: 100%;
+}
+
+.activity-heatmap-viewport {
+  max-width: 100%;
+}
+
+.activity-heatmap {
+  display: grid;
+  gap: 2px;
+  grid-auto-flow: column;
+  grid-template-columns: repeat(30, minmax(0, 1fr));
+  grid-template-rows: repeat(7, auto);
+  max-width: 420px;
+  transition: width 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  width: 100%;
+}
+
+.activity-layout {
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.activity-controls {
+  display: grid;
+  gap: 1.25rem;
+}
+
+@media (min-width: 1024px) {
+  .activity-layout.is-form-open {
+    grid-template-columns: minmax(0, 24rem) minmax(0, 1fr);
+  }
+
+  .activity-layout:not(.is-form-open) .activity-controls {
+    align-items: end;
+    grid-template-columns: minmax(0, 24rem) minmax(0, 420px);
+    justify-content: space-between;
+  }
+}
+
+.activity-cell {
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  height: auto;
+  justify-self: center;
+  max-width: 12px;
+  min-height: 0;
+  padding: 0;
+  transition: border-color 0.16s ease, filter 0.16s ease, transform 0.16s ease;
+  width: 100%;
+}
+
+.activity-cell.level-1 {
+  background: var(--activity-1);
+}
+
+.activity-cell.level-2 {
+  background: var(--activity-2);
+}
+
+.activity-cell.level-3 {
+  background: var(--activity-3);
+}
+
+.activity-cell.level-4 {
+  background: var(--activity-4);
+}
+
+.activity-cell.is-future {
+  opacity: 0.28;
+}
+
+.activity-cell:hover:not(:disabled),
+.activity-cell:focus-visible {
+  border-color: var(--foreground);
+  filter: brightness(1.18);
+  outline: none;
+  transform: scale(1.4);
+  z-index: 1;
+}
+
+.activity-cell.is-entering {
+  animation: activity-cell-enter 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes activity-cell-enter {
+  0% {
+    opacity: 0;
+    transform: scale(0.25);
+  }
+  65% {
+    transform: scale(1.55);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+@media (max-width: 639px) {
+  .activity-heatmap-viewport {
+    border-radius: 8px;
+    overflow: auto;
+    overscroll-behavior: contain;
+    scrollbar-color: var(--primary) rgba(255, 255, 255, 0.06);
+    scrollbar-width: thin;
+    touch-action: pan-x pan-y;
+    user-select: none;
+  }
+
+  .activity-heatmap-viewport.is-pinching {
+    cursor: grabbing;
+  }
+
+  .activity-heatmap {
+    max-width: none;
+    width: var(--heatmap-mobile-width, 100%);
+  }
+
+  .activity-heatmap-viewport.is-pinching .activity-heatmap {
+    transition: none;
+  }
+
+  .activity-cell {
+    max-width: var(--heatmap-mobile-cell-max, 12px);
+  }
+}
+
+#activityDateToggle,
+#activityCalendar,
+#expenseDateToggle,
+#expenseCalendar {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: var(--glass-border) !important;
+  color: var(--foreground) !important;
+  backdrop-filter: blur(12px) saturate(140%);
+}
+
+#activityDateToggle {
+  touch-action: pan-y;
+  will-change: transform, opacity;
+}
+
+#activityDateToggle.is-date-swiping {
+  transition: none;
+}
+
+#activityDateToggle:hover,
+#expenseDateToggle:hover {
+  background: var(--glass-hover-bg) !important;
+  border-color: var(--glass-border-hi) !important;
+}
+
+#activityCalendar .icon-control,
+#expenseCalendar .icon-control {
+  background: rgba(255, 255, 255, 0.07) !important;
+  border-color: var(--glass-border) !important;
+  color: var(--muted) !important;
+}
+
+#activityCalendar .icon-control:hover,
+#expenseCalendar .icon-control:hover {
+  background: var(--glass-hover-bg) !important;
+  border-color: var(--glass-border-hi) !important;
+  color: var(--foreground) !important;
+}
+
+.tab-button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--glass-border);
+  border-radius: 9px;
+  color: var(--muted);
+  display: inline-flex;
+  gap: 0.5rem;
+  justify-content: center;
+  min-height: 42px;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease;
+}
+
+nav[role="tablist"].glass {
+  border-radius: 20px;
+}
+
+.tab-button[aria-selected="true"] {
+  background: var(--control-bg);
+  border-color: var(--control-border);
+  color: var(--control-text);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .tab-button:hover {
+    background: var(--glass-hover-bg);
+    border-color: var(--glass-border-hi);
+    color: var(--foreground);
+  }
+}
+
+.tab-button svg {
+  height: 18px;
+  width: 18px;
+}
+
+#activityMonthLabel,
+#expenseMonthLabel {
+  color: var(--foreground);
+}
+
+.calendar-day {
+  align-items: center;
+  aspect-ratio: 1;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid transparent;
+  border-radius: 9999px;
+  color: var(--foreground);
+  display: inline-flex;
+  justify-content: center;
+  min-height: 0;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+}
+
+.calendar-day:hover:not(:disabled) {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-border-hi);
+  transform: translateY(-1px);
+}
+
+.calendar-day.is-selected {
+  background: var(--control-bg);
+  border-color: var(--control-border);
+  color: var(--control-text);
+}
+
+.calendar-day.is-today:not(.is-selected) {
+  border-color: var(--primary);
+  color: var(--primary);
+}
+
+.calendar-day.is-muted {
+  color: var(--faint);
+}
+
+.calendar-day.is-future {
+  cursor: not-allowed;
+  opacity: 0.28;
+}
+
+#activityNextDay:disabled,
+#activityNextMonth:disabled,
+#expenseNextMonth:disabled {
+  cursor: not-allowed;
+  opacity: 0.38;
+  pointer-events: none;
+  transform: none;
+}
+
+#expenseForm {
+  display: block;
+}
+
+#expenseForm:not(.hidden) {
+  animation: added-item-enter 0.3s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.expense-suggestion {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--glass-border);
+  color: var(--foreground);
+  min-height: 36px;
+}
+
+.expense-suggestion:hover {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-border-hi);
+}
+
+#quotaDetails summary,
+#expenseDetails summary {
+  list-style: none;
+}
+
+#quotaDetails summary::-webkit-details-marker,
+#expenseDetails summary::-webkit-details-marker {
+  display: none;
+}
+
+#quotaDetails .quota-chevron,
+#expenseDetails .expense-chevron {
+  transition: transform 0.18s ease;
+}
+
+#quotaDetails[open] .quota-chevron,
+#expenseDetails[open] .expense-chevron {
+  transform: rotate(180deg);
+}
+
+.quota-details-content {
+  overflow: hidden;
+  transform-origin: top center;
+  will-change: height, opacity, transform;
+}
+
+#quotaDetails.is-closing .quota-chevron {
+  transform: rotate(0deg);
+}
+
+#headerMenu {
+  align-items: center;
+  display: flex;
+  gap: 6px;
+}
+
+#headerMenu .header-menu-panel {
+  display: flex;
+  gap: 6px;
+  max-width: calc(100vw - 6rem);
+  opacity: 0;
+  pointer-events: none;
+  position: absolute;
+  right: calc(100% + 6px);
+  top: 50%;
+  transform: translate(12px, -50%) scale(0.96);
+  transform-origin: right center;
+  transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.24s;
+  visibility: hidden;
+  width: max-content;
+  z-index: 20;
+}
+
+#headerMenu.is-open .header-menu-panel {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate(0, -50%) scale(1);
+  transition-delay: 0s;
+  visibility: visible;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  #headerMenu .header-menu-panel {
+    transition-duration: 0.01ms;
+  }
+
+  .quota-details-content {
+    will-change: auto;
+  }
+
+  .activity-heatmap {
+    transition-duration: 0.01ms;
+  }
+
+  #activityDateToggle {
+    will-change: auto;
+  }
+
+  .expense-actions-desktop,
+  .expense-entry-main,
+  .expense-swipe-actions {
+    transition-duration: 0.01ms;
+  }
+
+  .expense-entry.is-entering,
+  .expense-suggestion.is-entering,
+  .activity-cell.is-entering,
+  #expenseForm:not(.hidden) {
+    animation: none;
+  }
+}
+
+.android-only {
+  display: none !important;
+}
+
+body.android-webview .android-only {
+  display: inline-flex !important;
+}
+.icon-control {
+  background: var(--control-bg) !important;
+  border-color: var(--control-border) !important;
+  color: var(--control-text) !important;
+}
+
+.icon-control:hover,
+button.icon-control:hover {
+  background: var(--control-hover-bg) !important;
+  border-color: var(--control-hover-border) !important;
+  color: var(--control-hover-text) !important;
+}
+
+button[style*="--primary"],
+button[style*="--danger"],
+.icon-control[style*="--primary"],
+.icon-control[style*="--danger"] {
+  background: var(--control-bg) !important;
+  color: var(--control-text) !important;
+  border: 1px solid var(--control-border) !important;
+}
+
+.danger-control {
+  background: #b3261e !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  color: #ffffff !important;
+}
+
+.danger-control:hover {
+  background: #8c1d18 !important;
+  border-color: rgba(255, 255, 255, 0.24) !important;
+  color: #ffffff !important;
+}

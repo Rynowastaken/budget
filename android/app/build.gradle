@@ -1,0 +1,17 @@
+plugins {
+    id 'com.android.application'
+}
+
+android {
+    namespace 'com.ryno.financemanager'
+    compileSdk 35
+    buildToolsVersion '37.0.0'
+
+    defaultConfig {
+        applicationId 'com.ryno.financemanager'
+        minSdk 23
+        targetSdk 35
+        versionCode 1
+        versionName '1.0'
+    }
+}
