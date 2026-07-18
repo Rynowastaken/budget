@@ -1,6 +1,6 @@
-# Finance Manager
+# Budget
 
-![Finance Manager logo](logo-small.webp)
+![Budget logo](logo-small.webp)
 
 > [!IMPORTANT]
 >This project is entirely vibe coded by GPT 5.5 and GPT 5.6 Sol.
