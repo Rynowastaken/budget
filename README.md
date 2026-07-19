@@ -4,7 +4,7 @@
 
 > [!IMPORTANT]
 >This project is entirely vibe coded by GPT 5.5 and GPT 5.6 Sol.
->I will not provide any support for bug fixes unless I also find it annoying.
+>I will not provide any support or bug fixes unless I also find it annoying.
 
 A lightweight, self-hosted budget and expense tracker built with vanilla HTML, CSS, JavaScript, and Node.js. It has no npm dependencies and stores profile data in a local JSON file.
 
