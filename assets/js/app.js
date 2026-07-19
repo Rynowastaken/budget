@@ -9,9 +9,24 @@ const defaults = {
   rolloverEnabled: true,
   background: "",
   palette: ["#f0a8c8", "#e8b86d", "#51314a", "#f07178", "#151018"],
+  colorScheme: "tonalSpot",
+  themeColorfulness: 1,
+  themeBrightness: 1,
   startDate: todayISO(),
   dailyOverrides: {},
   expenses: [],
+};
+
+const colorSchemes = {
+  content: { name: "Content", chroma: 1, hueOffsets: [0, 0, 0] },
+  expressive: { name: "Expressive", chroma: 1.15, hueOffsets: [0, 75, 35] },
+  fidelity: { name: "Fidelity", chroma: 1.05, hueOffsets: [0, 0, 0] },
+  monochrome: { name: "Monochrome", chroma: 0, hueOffsets: [0, 0, 0] },
+  neutral: { name: "Neutral", chroma: 0.16, hueOffsets: [0, 0, 0], chromaLimit: 0.035 },
+  tonalSpot: { name: "Tonal Spot", chroma: 0.72, hueOffsets: [0, 0, 0], chromaLimit: 0.14 },
+  vibrant: { name: "Vibrant", chroma: 1.5, hueOffsets: [0, 0, 0], chromaFloor: 0.12 },
+  rainbow: { name: "Rainbow", chroma: 1.2, hueOffsets: [0, 110, 220], chromaFloor: 0.1 },
+  fruitSalad: { name: "Fruit Salad", chroma: 1.25, hueOffsets: [-50, 50, 0], chromaFloor: 0.09 },
 };
 
 const els = {
@@ -77,6 +92,16 @@ const els = {
   emptyState: document.getElementById("emptyState"),
   toggleExpenseForm: document.getElementById("toggleExpenseForm"),
   backgroundInput: document.getElementById("backgroundInput"),
+  openSettings: document.getElementById("openSettings"),
+  settingsDialog: document.getElementById("settingsDialog"),
+  settingsDialogClose: document.getElementById("settingsDialogClose"),
+  colorSchemeOptions: document.getElementById("colorSchemeOptions"),
+  colorSchemePreview: document.getElementById("colorSchemePreview"),
+  themeColorfulness: document.getElementById("themeColorfulness"),
+  themeColorfulnessValue: document.getElementById("themeColorfulnessValue"),
+  themeBrightness: document.getElementById("themeBrightness"),
+  themeBrightnessValue: document.getElementById("themeBrightnessValue"),
+  applyColorScheme: document.getElementById("applyColorScheme"),
   uploadBackground: document.getElementById("uploadBackground"),
   clearBackground: document.getElementById("clearBackground"),
   resetData: document.getElementById("resetData"),
@@ -113,6 +138,10 @@ let activityDateSwipe = null;
 let suppressActivityDateClick = false;
 let expenseRowSwipe = null;
 let suppressExpenseSwipeClick = false;
+let pendingColorScheme = defaults.colorScheme;
+let pendingThemeColorfulness = defaults.themeColorfulness;
+let pendingThemeBrightness = defaults.themeBrightness;
+let settingsDialogAnimation = null;
 const assetCacheKey = "finance-manager-assets-v1";
 const androidBridge = window.FinanceManagerAndroid;
 document.body.classList.toggle("android-webview", Boolean(androidBridge?.changeServer));
@@ -587,6 +616,86 @@ function getMetrics() {
   return { todayQuota, todayAllowance, spent, dailyRemaining, totalRemaining, carry };
 }
 
+function normalizeColorScheme(scheme) {
+  if (Object.hasOwn(colorSchemes, scheme)) return scheme;
+  if (["automatic", "rose", "ocean", "forest", "violet", "ember"].includes(scheme)) return "content";
+  return defaults.colorScheme;
+}
+
+function normalizeThemeFactor(value) {
+  return clamp(Number(value) || 1, 0.5, 1.5);
+}
+
+function paletteForScheme(
+  scheme,
+  colorfulness = state.themeColorfulness,
+  brightness = state.themeBrightness,
+) {
+  const normalized = normalizeColorScheme(scheme);
+  const mode = colorSchemes[normalized];
+  const source = Array.isArray(state.palette) && state.palette.length >= 5
+    ? state.palette
+    : defaults.palette;
+  const chromaFactor = normalizeThemeFactor(colorfulness);
+  const lightnessOffset = (normalizeThemeFactor(brightness) - 1) * 0.18;
+
+  const generated = source.map((color, index) => {
+    if (index === 3) return color;
+    const { r, g, b } = hexToRgb(color);
+    const lab = rgbToOklab(r, g, b);
+    const roleIndex = Math.min(index, 2);
+    const hue = (lab.hue + mode.hueOffsets[roleIndex] + 360) % 360;
+    let chroma = lab.chroma * mode.chroma * chromaFactor;
+    if (mode.chromaFloor && lab.chroma >= 0.025) {
+      chroma = Math.max(chroma, mode.chromaFloor * chromaFactor);
+    }
+    if (mode.chromaLimit !== undefined) {
+      chroma = Math.min(chroma, mode.chromaLimit * chromaFactor);
+    }
+    if (index === 4) chroma *= 0.55;
+    return oklchToHex(
+      clamp(lab.lightness + lightnessOffset, 0.2, 0.94),
+      chroma,
+      hue,
+    );
+  });
+
+  generated[0] = ensureColorContrast(generated[0], "#1a141f", 4.5);
+  generated[1] = ensureColorContrast(generated[1]);
+  return generated;
+}
+
+function renderColorSchemeOptions(selectedScheme = normalizeColorScheme(state.colorScheme)) {
+  els.colorSchemeOptions.innerHTML = Object.entries(colorSchemes)
+    .map(([id, scheme]) => {
+      const checked = id === selectedScheme;
+      return `
+        <label class="color-scheme-option${checked ? " is-selected" : ""}">
+          <input class="scheme-radio sr-only" type="radio" name="colorScheme" value="${id}"${checked ? " checked" : ""}>
+          <span>${scheme.name}</span>
+        </label>
+      `;
+    })
+    .join("");
+}
+
+function formatThemeFactor(value) {
+  return Number(value).toFixed(2).replace(/\.?0+$/, "");
+}
+
+function renderColorSchemePreview(palette) {
+  els.colorSchemePreview.innerHTML = palette
+    .map((color) => `<span style="background: ${color}"></span>`)
+    .join("");
+}
+
+function syncThemeAdjustmentControls() {
+  els.themeColorfulness.value = pendingThemeColorfulness;
+  els.themeBrightness.value = pendingThemeBrightness;
+  els.themeColorfulnessValue.value = formatThemeFactor(pendingThemeColorfulness);
+  els.themeBrightnessValue.value = formatThemeFactor(pendingThemeBrightness);
+}
+
 function setTheme(palette) {
   const [primary, accent, secondary, danger] = palette;
   const root = document.documentElement;
@@ -756,7 +865,7 @@ function render() {
   renderActivityHeatmap();
   renderActivityCalendar();
   renderExpenseCalendar();
-  setTheme(state.palette);
+  setTheme(paletteForScheme(state.colorScheme));
   animatedExpenseId = "";
   animatedExpenseDate = "";
   animatedSuggestionName = "";
@@ -773,9 +882,11 @@ function escapeHtml(value) {
 }
 
 function readableText(hex) {
-  const { r, g, b } = hexToRgb(hex);
-  const brightness = (r * 299 + g * 587 + b * 114) / 1000;
-  return brightness < 130 ? "#ffffff" : "#15201d";
+  const darkText = "#000000";
+  const lightText = "#ffffff";
+  return contrastRatio(hex, darkText) >= contrastRatio(hex, lightText)
+    ? darkText
+    : lightText;
 }
 
 function hexToRgb(hex) {
@@ -793,6 +904,32 @@ function hexToRgb(hex) {
 function hexToRgba(hex, alpha) {
   const { r, g, b } = hexToRgb(hex);
   return `rgba(${r}, ${g}, ${b}, ${alpha})`;
+}
+
+function relativeLuminance(hex) {
+  const { r, g, b } = hexToRgb(hex);
+  return 0.2126 * srgbToLinear(r)
+    + 0.7152 * srgbToLinear(g)
+    + 0.0722 * srgbToLinear(b);
+}
+
+function contrastRatio(first, second) {
+  const firstLuminance = relativeLuminance(first);
+  const secondLuminance = relativeLuminance(second);
+  const lighter = Math.max(firstLuminance, secondLuminance);
+  const darker = Math.min(firstLuminance, secondLuminance);
+  return (lighter + 0.05) / (darker + 0.05);
+}
+
+function ensureColorContrast(color, background = "#1a141f", minimumRatio = 3.5) {
+  if (contrastRatio(color, background) >= minimumRatio) return color;
+  const { r, g, b } = hexToRgb(color);
+  const lab = rgbToOklab(r, g, b);
+  for (let lightness = lab.lightness + 0.015; lightness <= 0.94; lightness += 0.015) {
+    const candidate = oklchToHex(lightness, lab.chroma, lab.hue);
+    if (contrastRatio(candidate, background) >= minimumRatio) return candidate;
+  }
+  return oklchToHex(0.94, Math.min(lab.chroma, 0.08), lab.hue);
 }
 
 function rgbToHex(r, g, b) {
@@ -822,6 +959,30 @@ function rgbToOklab(r, g, b) {
   const chroma = Math.hypot(a, labB);
   const hue = (Math.atan2(labB, a) * 180 / Math.PI + 360) % 360;
   return { lightness, a, b: labB, chroma, hue };
+}
+
+function linearToSrgb(channel) {
+  const value = channel <= 0.0031308
+    ? 12.92 * channel
+    : 1.055 * (channel ** (1 / 2.4)) - 0.055;
+  return clamp(value * 255, 0, 255);
+}
+
+function oklchToHex(lightness, chroma, hue) {
+  const radians = hue * Math.PI / 180;
+  const a = chroma * Math.cos(radians);
+  const labB = chroma * Math.sin(radians);
+  const lRoot = lightness + 0.3963377774 * a + 0.2158037573 * labB;
+  const mRoot = lightness - 0.1055613458 * a - 0.0638541728 * labB;
+  const sRoot = lightness - 0.0894841775 * a - 1.291485548 * labB;
+  const l = lRoot ** 3;
+  const m = mRoot ** 3;
+  const s = sRoot ** 3;
+  return rgbToHex(
+    linearToSrgb(4.0767416621 * l - 3.3077115913 * m + 0.2309699292 * s),
+    linearToSrgb(-1.2684380046 * l + 2.6097574011 * m - 0.3413193965 * s),
+    linearToSrgb(-0.0041960863 * l - 0.7034186147 * m + 1.707614701 * s),
+  );
 }
 
 function colorDistance(first, second) {
@@ -1489,6 +1650,120 @@ function endActivityHeatmapPinch(event) {
 
 els.activityHeatmapViewport.addEventListener("touchend", endActivityHeatmapPinch);
 els.activityHeatmapViewport.addEventListener("touchcancel", endActivityHeatmapPinch);
+
+function animateSettingsDialog(isOpening) {
+  settingsDialogAnimation?.cancel();
+  const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+  if (reduceMotion) return Promise.resolve();
+  settingsDialogAnimation = els.settingsDialog.querySelector(".settings-dialog-card").animate(
+    [
+      { opacity: isOpening ? 0 : 1, transform: isOpening ? "translateY(14px) scale(0.97)" : "translateY(0) scale(1)" },
+      { opacity: isOpening ? 1 : 0, transform: isOpening ? "translateY(0) scale(1)" : "translateY(10px) scale(0.98)" },
+    ],
+    {
+      duration: isOpening ? 280 : 180,
+      easing: "cubic-bezier(0.22, 1, 0.36, 1)",
+      fill: "both",
+    },
+  );
+  return settingsDialogAnimation.finished.catch(() => {});
+}
+
+function openSettingsDialog() {
+  setHeaderMenuOpen(false);
+  pendingColorScheme = normalizeColorScheme(state.colorScheme);
+  pendingThemeColorfulness = normalizeThemeFactor(state.themeColorfulness);
+  pendingThemeBrightness = normalizeThemeFactor(state.themeBrightness);
+  renderColorSchemeOptions(pendingColorScheme);
+  syncThemeAdjustmentControls();
+  renderColorSchemePreview(paletteForScheme(
+    pendingColorScheme,
+    pendingThemeColorfulness,
+    pendingThemeBrightness,
+  ));
+  if (!els.settingsDialog.open) els.settingsDialog.showModal();
+  animateSettingsDialog(true);
+}
+
+async function closeSettingsDialog(restoreTheme = true) {
+  if (!els.settingsDialog.open) return;
+  if (restoreTheme) setTheme(paletteForScheme(state.colorScheme));
+  await animateSettingsDialog(false);
+  settingsDialogAnimation?.cancel();
+  settingsDialogAnimation = null;
+  els.settingsDialog.close();
+  els.openSettings.focus();
+}
+
+els.openSettings.addEventListener("click", openSettingsDialog);
+els.settingsDialogClose.addEventListener("click", () => closeSettingsDialog(true));
+
+els.colorSchemeOptions.addEventListener("change", (event) => {
+  const input = event.target.closest('input[name="colorScheme"]');
+  if (!input) return;
+  pendingColorScheme = normalizeColorScheme(input.value);
+  renderColorSchemeOptions(pendingColorScheme);
+  const palette = paletteForScheme(
+    pendingColorScheme,
+    pendingThemeColorfulness,
+    pendingThemeBrightness,
+  );
+  renderColorSchemePreview(palette);
+  setTheme(palette);
+});
+
+function previewThemeAdjustments() {
+  pendingThemeColorfulness = normalizeThemeFactor(els.themeColorfulness.value);
+  pendingThemeBrightness = normalizeThemeFactor(els.themeBrightness.value);
+  syncThemeAdjustmentControls();
+  const palette = paletteForScheme(
+    pendingColorScheme,
+    pendingThemeColorfulness,
+    pendingThemeBrightness,
+  );
+  renderColorSchemePreview(palette);
+  setTheme(palette);
+}
+
+els.themeColorfulness.addEventListener("input", previewThemeAdjustments);
+els.themeBrightness.addEventListener("input", previewThemeAdjustments);
+
+els.applyColorScheme.addEventListener("click", async () => {
+  const previousScheme = state.colorScheme;
+  const previousColorfulness = state.themeColorfulness;
+  const previousBrightness = state.themeBrightness;
+  state.colorScheme = normalizeColorScheme(pendingColorScheme);
+  state.themeColorfulness = normalizeThemeFactor(pendingThemeColorfulness);
+  state.themeBrightness = normalizeThemeFactor(pendingThemeBrightness);
+  try {
+    await saveState({
+      fields: {
+        colorScheme: state.colorScheme,
+        themeColorfulness: state.themeColorfulness,
+        themeBrightness: state.themeBrightness,
+      },
+    });
+    await closeSettingsDialog(false);
+    render();
+    showAppMessage(`${colorSchemes[state.colorScheme].name} color scheme applied.`);
+  } catch (error) {
+    state.colorScheme = previousScheme;
+    state.themeColorfulness = previousColorfulness;
+    state.themeBrightness = previousBrightness;
+    setTheme(paletteForScheme(previousScheme));
+    showAppMessage("Could not save color scheme: " + error.message, "error");
+  }
+});
+
+els.settingsDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeSettingsDialog(true);
+});
+
+els.settingsDialog.addEventListener("click", (event) => {
+  if (event.target !== els.settingsDialog) return;
+  closeSettingsDialog(true);
+});
 
 els.uploadBackground.addEventListener("click", () => {
   setHeaderMenuOpen(false);

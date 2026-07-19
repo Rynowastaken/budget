@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260718-20" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260719-25" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -79,6 +79,9 @@
               <i data-lucide="menu" aria-hidden="true"></i>
             </button>
             <div id="headerMenuPanel" class="header-menu-panel flex-wrap justify-end" aria-hidden="true">
+              <button id="openSettings" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Open settings" title="Settings">
+                <i data-lucide="settings" aria-hidden="true"></i>
+              </button>
               <button id="uploadBackground" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Upload background" title="Upload background">
                 <i data-lucide="image-up" aria-hidden="true"></i>
               </button>
@@ -322,6 +325,47 @@
       </section>
     </main>
 
-    <script src="/assets/js/app.js?v=20260719-21"></script>
+    <dialog id="settingsDialog" aria-labelledby="settingsDialogTitle">
+      <section class="settings-dialog-card glass">
+        <header class="flex items-center justify-between gap-4">
+          <div>
+            <h2 id="settingsDialogTitle" class="text-xl font-semibold">Settings</h2>
+            <p class="mt-1 text-sm font-medium" style="color: var(--muted)">Personalize this profile.</p>
+          </div>
+          <button id="settingsDialogClose" class="danger-control focus-ring icon-control shrink-0 rounded-lg border shadow-sm" type="button" aria-label="Cancel settings" title="Cancel" autofocus>
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </header>
+
+        <fieldset class="mt-6">
+          <legend class="text-sm font-semibold">Color scheme</legend>
+          <p class="mt-1 text-xs font-medium" style="color: var(--muted)">Every scheme is generated from your uploaded background.</p>
+          <div id="colorSchemeOptions" class="color-scheme-grid mt-4"></div>
+          <div id="colorSchemePreview" class="color-scheme-preview mt-4" aria-label="Generated color preview"></div>
+
+          <div class="theme-adjustments mt-5">
+            <label class="theme-adjustment">
+              <span class="text-sm font-medium">Colorfulness</span>
+              <input id="themeColorfulness" class="focus-ring" type="range" min="0.5" max="1.5" step="0.05" value="1">
+              <output id="themeColorfulnessValue" for="themeColorfulness">1</output>
+            </label>
+            <label class="theme-adjustment">
+              <span class="text-sm font-medium">Brightness</span>
+              <input id="themeBrightness" class="focus-ring" type="range" min="0.5" max="1.5" step="0.05" value="1">
+              <output id="themeBrightnessValue" for="themeBrightness">1</output>
+            </label>
+          </div>
+        </fieldset>
+
+        <div class="settings-dialog-actions mt-6 flex justify-end">
+          <button id="applyColorScheme" class="scheme-apply focus-ring rounded-lg px-4 text-sm font-semibold shadow-sm" type="button">
+            <i data-lucide="check" aria-hidden="true"></i>
+            <span>Apply scheme</span>
+          </button>
+        </div>
+      </section>
+    </dialog>
+
+    <script src="/assets/js/app.js?v=20260719-25"></script>
   </body>
 </html>
