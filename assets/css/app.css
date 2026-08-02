@@ -445,9 +445,35 @@ button[style*="--primary"],
 }
 
 #emptyState,
-label:has(#rolloverEnabled) {
+label:has(#rolloverEnabled),
+label:has(#budgetResetEnabled),
+.budget-reset-options,
+.manual-budget-reset {
   background: rgba(255, 255, 255, 0.07) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.budget-reset-options:not(.hidden) {
+  animation: added-item-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.manual-reset-button {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 38px;
+  transition: filter 0.16s ease, transform 0.16s ease;
+}
+
+.manual-reset-button:hover {
+  filter: brightness(1.08);
+  transform: translateY(-1px);
+}
+
+.manual-reset-button svg {
+  height: 17px;
+  width: 17px;
 }
 
 .activity-heatmap-shell {
@@ -991,6 +1017,7 @@ nav[role="tablist"].glass {
   .expense-entry.is-entering,
   .expense-suggestion.is-entering,
   .activity-cell.is-entering,
+  .budget-reset-options:not(.hidden),
   #expenseForm:not(.hidden) {
     animation: none;
   }

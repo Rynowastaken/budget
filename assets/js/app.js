@@ -7,6 +7,13 @@ const defaults = {
   totalAmount: 500,
   currency: "USD",
   rolloverEnabled: true,
+  budgetResetEnabled: false,
+  budgetResetDay: 1,
+  resetRolloverOnBudgetReset: false,
+  lastBudgetResetAt: 0,
+  lastBudgetResetDate: "",
+  lastRolloverResetAt: 0,
+  lastRolloverResetDate: "",
   background: "",
   palette: ["#f0a8c8", "#e8b86d", "#51314a", "#f07178", "#151018"],
   colorScheme: "tonalSpot",
@@ -51,8 +58,15 @@ const els = {
   dailyQuota: document.getElementById("dailyQuota"),
   todayQuota: document.getElementById("todayQuota"),
   totalAmount: document.getElementById("totalAmount"),
+  totalAmountLabel: document.getElementById("totalAmountLabel"),
   currencyCode: document.getElementById("currencyCode"),
   rolloverEnabled: document.getElementById("rolloverEnabled"),
+  budgetResetEnabled: document.getElementById("budgetResetEnabled"),
+  budgetResetOptions: document.getElementById("budgetResetOptions"),
+  budgetResetDay: document.getElementById("budgetResetDay"),
+  resetRolloverOnBudgetReset: document.getElementById("resetRolloverOnBudgetReset"),
+  budgetResetSummary: document.getElementById("budgetResetSummary"),
+  manualBudgetReset: document.getElementById("manualBudgetReset"),
   settingsForm: document.getElementById("settingsForm"),
   overviewTab: document.getElementById("overviewTab"),
   activityTab: document.getElementById("activityTab"),
@@ -463,7 +477,9 @@ function applyExpenseSuggestion() {
 }
 
 function totalSpent() {
-  return state.expenses.reduce((sum, expense) => sum + expense.amount, 0);
+  return state.expenses
+    .filter((expense) => expenseOccursAfterBoundary(expense, currentBudgetBoundary()))
+    .reduce((sum, expense) => sum + expense.amount, 0);
 }
 
 function money(value) {
@@ -480,9 +496,12 @@ function money(value) {
 
 function getRolloverCarry() {
   if (!state.rolloverEnabled) return 0;
+  const boundary = currentRolloverBoundary();
   let carry = 0;
-  for (const date of datesBetween(state.startDate, todayISO())) {
-    const spent = expensesOn(date).reduce((sum, expense) => sum + expense.amount, 0);
+  for (const date of datesBetween(boundary.date, todayISO())) {
+    const spent = expensesOn(date)
+      .filter((expense) => expenseOccursAfterBoundary(expense, boundary))
+      .reduce((sum, expense) => sum + expense.amount, 0);
     carry = quotaForDate(date) + carry - spent;
   }
   return carry;
@@ -507,6 +526,70 @@ function datesBetween(startDate, endDate) {
 function dateFromISO(date) {
   const [year, month, day] = String(date || todayISO()).split("-").map(Number);
   return new Date(year, (month || 1) - 1, day || 1);
+}
+
+function normalizeBudgetResetDay(value = state.budgetResetDay) {
+  return clamp(Math.round(Number(value) || 1), 1, 31);
+}
+
+function resetDateForMonth(year, monthIndex, resetDay = state.budgetResetDay) {
+  const lastDay = new Date(year, monthIndex + 1, 0).getDate();
+  return new Date(year, monthIndex, Math.min(normalizeBudgetResetDay(resetDay), lastDay));
+}
+
+function budgetCycleStartISO(date = todayISO(), resetDay = state.budgetResetDay) {
+  const target = dateFromISO(date);
+  let reset = resetDateForMonth(target.getFullYear(), target.getMonth(), resetDay);
+  if (target < reset) {
+    reset = resetDateForMonth(target.getFullYear(), target.getMonth() - 1, resetDay);
+  }
+  return reset.toLocaleDateString("en-CA");
+}
+
+function nextBudgetResetISO(date = todayISO(), resetDay = state.budgetResetDay) {
+  const target = dateFromISO(date);
+  let reset = resetDateForMonth(target.getFullYear(), target.getMonth(), resetDay);
+  if (target >= reset) {
+    reset = resetDateForMonth(target.getFullYear(), target.getMonth() + 1, resetDay);
+  }
+  return reset.toLocaleDateString("en-CA");
+}
+
+function laterResetBoundary(first, second) {
+  if (!first?.date) return second || { date: "", at: 0 };
+  if (!second?.date) return first;
+  if (first.date !== second.date) return first.date > second.date ? first : second;
+  return Number(first.at || 0) >= Number(second.at || 0) ? first : second;
+}
+
+function currentBudgetBoundary() {
+  const scheduled = state.budgetResetEnabled
+    ? { date: budgetCycleStartISO(), at: 0 }
+    : { date: "", at: 0 };
+  const manual = {
+    date: String(state.lastBudgetResetDate || ""),
+    at: Number(state.lastBudgetResetAt || 0),
+  };
+  return laterResetBoundary(scheduled, manual);
+}
+
+function currentRolloverBoundary() {
+  let boundary = { date: state.startDate || todayISO(), at: 0 };
+  if (state.budgetResetEnabled && state.resetRolloverOnBudgetReset) {
+    boundary = laterResetBoundary(boundary, { date: budgetCycleStartISO(), at: 0 });
+  }
+  boundary = laterResetBoundary(boundary, {
+    date: String(state.lastRolloverResetDate || ""),
+    at: Number(state.lastRolloverResetAt || 0),
+  });
+  return boundary;
+}
+
+function expenseOccursAfterBoundary(expense, boundary) {
+  if (!boundary?.date) return true;
+  if (expense.date !== boundary.date) return expense.date > boundary.date;
+  if (!boundary.at) return true;
+  return Number(expense.createdAt || 0) > boundary.at;
 }
 
 function monthStart(date) {
@@ -610,7 +693,10 @@ function getMetrics() {
   const carry = getRolloverCarry();
   const todayQuota = quotaForDate(today);
   const todayAllowance = todayQuota + carry;
-  const spent = expensesOn(today).reduce((sum, expense) => sum + expense.amount, 0);
+  const rolloverBoundary = state.rolloverEnabled ? currentRolloverBoundary() : null;
+  const spent = expensesOn(today)
+    .filter((expense) => !rolloverBoundary || expenseOccursAfterBoundary(expense, rolloverBoundary))
+    .reduce((sum, expense) => sum + expense.amount, 0);
   const dailyRemaining = todayAllowance - spent;
   const totalRemaining = state.totalAmount - totalSpent();
   return { todayQuota, todayAllowance, spent, dailyRemaining, totalRemaining, carry };
@@ -787,6 +873,14 @@ function renderIcons() {
   }
 }
 
+function syncBudgetResetEditor() {
+  const enabled = els.budgetResetEnabled.checked;
+  const resetDay = normalizeBudgetResetDay(els.budgetResetDay.value || state.budgetResetDay);
+  els.budgetResetOptions.classList.toggle("hidden", !enabled);
+  els.totalAmountLabel.textContent = enabled ? "Amount per reset" : "Total amount";
+  els.budgetResetSummary.textContent = `Next reset: ${formatDateLabel(nextBudgetResetISO(todayISO(), resetDay))}${resetDay === 31 ? " · Uses the last day in shorter months" : ""}`;
+}
+
 function render() {
   const today = todayISO();
   const metrics = getMetrics();
@@ -799,7 +893,14 @@ function render() {
   els.totalAmount.value = state.totalAmount;
   els.currencyCode.value = state.currency || defaults.currency;
   els.rolloverEnabled.checked = state.rolloverEnabled;
-  els.quotaSummary.textContent = money(metrics.todayQuota) + " today · " + money(state.dailyQuota) + " daily · " + money(state.totalAmount) + " total";
+  els.budgetResetEnabled.checked = Boolean(state.budgetResetEnabled);
+  els.budgetResetDay.value = normalizeBudgetResetDay(state.budgetResetDay);
+  els.resetRolloverOnBudgetReset.checked = Boolean(state.resetRolloverOnBudgetReset);
+  syncBudgetResetEditor();
+  const resetSummary = state.budgetResetEnabled
+    ? ` · ${money(state.totalAmount)} each reset`
+    : ` · ${money(state.totalAmount)} total`;
+  els.quotaSummary.textContent = money(metrics.todayQuota) + " today · " + money(state.dailyQuota) + " daily" + resetSummary;
   els.expenseSummary.textContent = money(metrics.spent) + " spent today · " + state.expenses.length + " entries";
   selectedExpenseDate = selectedExpenseDate || today;
   els.expenseNameSuggestions.innerHTML = expenseSuggestions()
@@ -1226,6 +1327,60 @@ function startExpenseEdit(expense) {
   renderIcons();
 }
 
+els.budgetResetEnabled.addEventListener("change", syncBudgetResetEditor);
+els.budgetResetDay.addEventListener("input", syncBudgetResetEditor);
+
+els.manualBudgetReset.addEventListener("click", async () => {
+  const resetAmount = numberValue(els.totalAmount.value);
+  const resetRollover = els.resetRolloverOnBudgetReset.checked;
+  const rolloverMessage = resetRollover ? " Daily rollover will also restart." : " Daily rollover will be kept.";
+  if (!confirm(`Reset the total balance to ${money(resetAmount)} now? Expense history will be kept.${rolloverMessage}`)) return;
+
+  const previous = {
+    totalAmount: state.totalAmount,
+    budgetResetEnabled: state.budgetResetEnabled,
+    budgetResetDay: state.budgetResetDay,
+    resetRolloverOnBudgetReset: state.resetRolloverOnBudgetReset,
+    lastBudgetResetAt: state.lastBudgetResetAt,
+    lastBudgetResetDate: state.lastBudgetResetDate,
+    lastRolloverResetAt: state.lastRolloverResetAt,
+    lastRolloverResetDate: state.lastRolloverResetDate,
+  };
+  const resetAt = Date.now();
+  const resetDate = todayISO();
+  state.totalAmount = resetAmount;
+  state.budgetResetEnabled = els.budgetResetEnabled.checked;
+  state.budgetResetDay = normalizeBudgetResetDay(els.budgetResetDay.value);
+  state.resetRolloverOnBudgetReset = resetRollover;
+  state.lastBudgetResetAt = resetAt;
+  state.lastBudgetResetDate = resetDate;
+  if (resetRollover) {
+    state.lastRolloverResetAt = resetAt;
+    state.lastRolloverResetDate = resetDate;
+  }
+
+  try {
+    await saveState({
+      fields: {
+        totalAmount: state.totalAmount,
+        budgetResetEnabled: state.budgetResetEnabled,
+        budgetResetDay: state.budgetResetDay,
+        resetRolloverOnBudgetReset: state.resetRolloverOnBudgetReset,
+        lastBudgetResetAt: state.lastBudgetResetAt,
+        lastBudgetResetDate: state.lastBudgetResetDate,
+        lastRolloverResetAt: state.lastRolloverResetAt,
+        lastRolloverResetDate: state.lastRolloverResetDate,
+      },
+    });
+    render();
+    showAppMessage(`Budget reset to ${money(state.totalAmount)}.${resetRollover ? " Rollover reset too." : " Rollover kept."}`);
+  } catch (error) {
+    Object.assign(state, previous);
+    render();
+    showAppMessage("Could not reset budget: " + error.message, "error");
+  }
+});
+
 els.settingsForm.addEventListener("submit", async (event) => {
   event.preventDefault();
   const nextDailyQuota = numberValue(els.dailyQuota.value);
@@ -1241,6 +1396,9 @@ els.settingsForm.addEventListener("submit", async (event) => {
   state.totalAmount = numberValue(els.totalAmount.value);
   state.currency = els.currencyCode.value;
   state.rolloverEnabled = nextRolloverEnabled;
+  state.budgetResetEnabled = els.budgetResetEnabled.checked;
+  state.budgetResetDay = normalizeBudgetResetDay(els.budgetResetDay.value);
+  state.resetRolloverOnBudgetReset = els.resetRolloverOnBudgetReset.checked;
   await saveState({
     fields: {
       dailyQuota: state.dailyQuota,
@@ -1248,6 +1406,9 @@ els.settingsForm.addEventListener("submit", async (event) => {
       totalAmount: state.totalAmount,
       currency: state.currency,
       rolloverEnabled: state.rolloverEnabled,
+      budgetResetEnabled: state.budgetResetEnabled,
+      budgetResetDay: state.budgetResetDay,
+      resetRolloverOnBudgetReset: state.resetRolloverOnBudgetReset,
       startDate: state.startDate,
     },
   });
