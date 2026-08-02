@@ -126,6 +126,7 @@ const els = {
   headerMenuToggle: document.getElementById("headerMenuToggle"),
   headerMenuPanel: document.getElementById("headerMenuPanel"),
   activityHeatmap: document.getElementById("activityHeatmap"),
+  activityHeatmapMonth: document.getElementById("activityHeatmapMonth"),
   activityHeatmapViewport: document.getElementById("activityHeatmapViewport"),
 };
 
@@ -817,37 +818,51 @@ function setTheme(palette) {
 
 function renderActivityHeatmap() {
   const today = dateFromISO(todayISO());
-  const end = new Date(today);
-  end.setDate(end.getDate() + (6 - end.getDay()));
-  const start = new Date(end);
-  start.setDate(start.getDate() - 209);
+  const start = monthStart(selectedActivityDate);
+  const year = start.getFullYear();
+  const month = start.getMonth();
+  const daysInMonth = new Date(year, month + 1, 0).getDate();
+  const monthPrefix = `${year}-${String(month + 1).padStart(2, "0")}-`;
   const totals = new Map();
   for (const expense of state.expenses) {
+    if (!expense.date?.startsWith(monthPrefix)) continue;
     totals.set(expense.date, (totals.get(expense.date) || 0) + Number(expense.amount || 0));
   }
-  const dates = Array.from({ length: 210 }, (_, index) => {
-    const date = new Date(start);
-    date.setDate(start.getDate() + index);
+  const dates = Array.from({ length: daysInMonth }, (_, index) => {
+    const date = new Date(year, month, index + 1);
     const iso = date.toLocaleDateString("en-CA");
     return { date, iso, total: totals.get(iso) || 0 };
   });
+  const weeks = Math.ceil((start.getDay() + daysInMonth) / 7);
+  const monthLabel = new Intl.DateTimeFormat(undefined, {
+    month: "long",
+    year: "numeric",
+  }).format(start);
   const maxTotal = Math.max(0, ...dates.map((entry) => entry.total));
-  els.activityHeatmap.innerHTML = dates.map((entry) => {
+  els.activityHeatmap.style.setProperty("--activity-month-weeks", weeks);
+  els.activityHeatmap.setAttribute("aria-label", `Expense activity for ${monthLabel}`);
+  els.activityHeatmapMonth.textContent = monthLabel;
+  const leadingCells = Array.from(
+    { length: start.getDay() },
+    () => '<span class="activity-cell-placeholder" aria-hidden="true"></span>',
+  ).join("");
+  els.activityHeatmap.innerHTML = leadingCells + dates.map((entry) => {
     const isFuture = entry.date > today;
     const level = entry.total > 0 && maxTotal > 0
       ? Math.max(1, Math.ceil((entry.total / maxTotal) * 4))
       : 0;
     const label = `${formatDateLabel(entry.iso)}: ${entry.total > 0 ? money(entry.total) : "No expenses"}`;
     const entering = entry.iso === animatedExpenseDate ? " is-entering" : "";
-    return `<button class="activity-cell level-${level}${isFuture ? " is-future" : ""}${entering}" type="button" data-heatmap-date="${entry.iso}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${isFuture ? " disabled" : ""}></button>`;
+    const selected = entry.iso === selectedActivityDate ? " is-selected" : "";
+    const current = entry.iso === todayISO() ? " is-today" : "";
+    return `<button class="activity-cell level-${level}${isFuture ? " is-future" : ""}${selected}${current}${entering}" type="button" data-heatmap-date="${entry.iso}" aria-label="${escapeHtml(label)}" title="${escapeHtml(label)}"${selected ? ' aria-current="date"' : ""}${isFuture ? " disabled" : ""}></button>`;
   }).join("");
 }
 
 function setActivityHeatmapZoom(nextZoom, anchor = null) {
   const previousZoom = activityHeatmapZoom;
   activityHeatmapZoom = clamp(Math.round(nextZoom * 100) / 100, 1, 3);
-  els.activityHeatmap.style.setProperty("--heatmap-mobile-width", `${activityHeatmapZoom * 100}%`);
-  els.activityHeatmap.style.setProperty("--heatmap-mobile-cell-max", `${activityHeatmapZoom * 12}px`);
+  els.activityHeatmap.style.setProperty("--heatmap-mobile-cell-size", `${activityHeatmapZoom * 13}px`);
 
   if (previousZoom === activityHeatmapZoom) return;
   if (anchor) {

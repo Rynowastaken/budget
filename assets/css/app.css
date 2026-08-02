@@ -477,9 +477,66 @@ label:has(#budgetResetEnabled),
 }
 
 .activity-heatmap-shell {
-  max-width: 420px;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  max-width: 100%;
   min-width: 0;
-  width: 100%;
+  padding: 0.7rem 0.75rem 0.75rem;
+  width: max-content;
+}
+
+.activity-heatmap-header {
+  align-items: center;
+  display: flex;
+  gap: 0.85rem;
+  justify-content: space-between;
+  margin-bottom: 0.65rem;
+}
+
+.activity-heatmap-month {
+  color: var(--foreground);
+  font-size: 0.75rem;
+  font-weight: 700;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.activity-heatmap-legend {
+  align-items: center;
+  color: var(--muted);
+  display: flex;
+  font-size: 0.625rem;
+  font-weight: 600;
+  gap: 3px;
+  line-height: 1;
+  white-space: nowrap;
+}
+
+.activity-heatmap-legend i {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  border-radius: 2px;
+  display: block;
+  height: 7px;
+  width: 7px;
+}
+
+.activity-heatmap-legend .level-1 {
+  background: var(--activity-1);
+}
+
+.activity-heatmap-legend .level-2 {
+  background: var(--activity-2);
+}
+
+.activity-heatmap-legend .level-3 {
+  background: var(--activity-3);
+}
+
+.activity-heatmap-legend .level-4 {
+  background: var(--activity-4);
 }
 
 .activity-heatmap-viewport {
@@ -488,13 +545,13 @@ label:has(#budgetResetEnabled),
 
 .activity-heatmap {
   display: grid;
-  gap: 2px;
+  gap: 3px;
   grid-auto-flow: column;
-  grid-template-columns: repeat(30, minmax(0, 1fr));
+  grid-template-columns: repeat(var(--activity-month-weeks, 6), 13px);
   grid-template-rows: repeat(7, auto);
-  max-width: 420px;
-  transition: width 0.24s cubic-bezier(0.22, 1, 0.36, 1);
-  width: 100%;
+  margin-inline: auto;
+  transition: grid-template-columns 0.24s cubic-bezier(0.22, 1, 0.36, 1);
+  width: max-content;
 }
 
 .activity-layout {
@@ -516,20 +573,43 @@ label:has(#budgetResetEnabled),
     grid-template-columns: minmax(0, 24rem) minmax(0, 420px);
     justify-content: space-between;
   }
+
+  .activity-layout:not(.is-form-open) .activity-heatmap-shell {
+    justify-self: end;
+  }
+}
+
+.activity-cell,
+.activity-cell-placeholder {
+  aspect-ratio: 1;
+  width: 13px;
+}
+
+.activity-cell-placeholder {
+  pointer-events: none;
+  visibility: hidden;
 }
 
 .activity-cell {
-  aspect-ratio: 1;
   background: rgba(255, 255, 255, 0.07);
   border: 1px solid rgba(255, 255, 255, 0.08);
-  border-radius: 2px;
+  border-radius: 3px;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
   height: auto;
   justify-self: center;
-  max-width: 12px;
+  max-width: 13px;
   min-height: 0;
   padding: 0;
   transition: border-color 0.16s ease, filter 0.16s ease, transform 0.16s ease;
-  width: 100%;
+}
+
+.activity-cell.is-today:not(.is-selected) {
+  border-color: var(--control-bg);
+}
+
+.activity-cell.is-selected {
+  box-shadow: 0 0 0 2px var(--control-bg), 0 0 0 4px rgba(0, 0, 0, 0.18);
+  z-index: 1;
 }
 
 .activity-cell.level-1 {
@@ -580,6 +660,12 @@ label:has(#budgetResetEnabled),
 }
 
 @media (max-width: 639px) {
+  .activity-heatmap-header {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 0.45rem;
+  }
+
   .activity-heatmap-viewport {
     border-radius: 8px;
     overflow: auto;
@@ -595,16 +681,17 @@ label:has(#budgetResetEnabled),
   }
 
   .activity-heatmap {
-    max-width: none;
-    width: var(--heatmap-mobile-width, 100%);
+    grid-template-columns: repeat(var(--activity-month-weeks, 6), var(--heatmap-mobile-cell-size, 13px));
   }
 
   .activity-heatmap-viewport.is-pinching .activity-heatmap {
     transition: none;
   }
 
-  .activity-cell {
-    max-width: var(--heatmap-mobile-cell-max, 12px);
+  .activity-cell,
+  .activity-cell-placeholder {
+    max-width: var(--heatmap-mobile-cell-size, 13px);
+    width: var(--heatmap-mobile-cell-size, 13px);
   }
 }
 

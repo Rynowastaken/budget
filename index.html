@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260802-27" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260803-31" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -288,8 +288,20 @@
                 </div>
               </div>
               <div class="activity-heatmap-shell">
+                <div class="activity-heatmap-header">
+                  <p id="activityHeatmapMonth" class="activity-heatmap-month"></p>
+                  <div class="activity-heatmap-legend" role="img" aria-label="Expense intensity from low to high">
+                    <span>Less</span>
+                    <i class="level-0" aria-hidden="true"></i>
+                    <i class="level-1" aria-hidden="true"></i>
+                    <i class="level-2" aria-hidden="true"></i>
+                    <i class="level-3" aria-hidden="true"></i>
+                    <i class="level-4" aria-hidden="true"></i>
+                    <span>More</span>
+                  </div>
+                </div>
                 <div id="activityHeatmapViewport" class="activity-heatmap-viewport" tabindex="0" aria-label="Expense activity heatmap. Pinch with two fingers to zoom, then swipe to navigate.">
-                  <div id="activityHeatmap" class="activity-heatmap" aria-label="Expense activity over the last 30 weeks"></div>
+                  <div id="activityHeatmap" class="activity-heatmap" aria-label="Expense activity for the current month"></div>
                 </div>
               </div>
             </div>
@@ -401,6 +413,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260802-27"></script>
+    <script src="/assets/js/app.js?v=20260803-31"></script>
   </body>
 </html>
