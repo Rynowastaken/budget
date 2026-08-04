@@ -447,10 +447,73 @@ button[style*="--primary"],
 #emptyState,
 label:has(#rolloverEnabled),
 label:has(#budgetResetEnabled),
+.split-budget-option,
 .budget-reset-options,
+.manual-budget-add,
 .manual-budget-reset {
   background: rgba(255, 255, 255, 0.07) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
+}
+
+.budget-top-up-controls {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+}
+
+#dailyQuota:disabled,
+#todayQuota:disabled {
+  cursor: not-allowed;
+  opacity: 0.58;
+}
+
+.budget-add-button {
+  align-items: center;
+  background: var(--control-bg);
+  border-color: var(--control-border);
+  color: var(--control-text);
+  display: inline-flex;
+  gap: 0.4rem;
+  justify-content: center;
+  min-height: 42px;
+  transition: background-color 0.16s ease, border-color 0.16s ease, filter 0.16s ease, transform 0.16s ease;
+}
+
+.budget-add-button:hover {
+  background: var(--control-hover-bg);
+  border-color: var(--control-hover-border);
+  color: var(--control-hover-text);
+  filter: brightness(1.06);
+  transform: translateY(-1px);
+}
+
+.budget-add-button svg {
+  height: 17px;
+  width: 17px;
+}
+
+.restore-quota-button {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.08);
+  border-color: var(--glass-border);
+  color: var(--foreground);
+  display: inline-flex;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 38px;
+  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.restore-quota-button:hover {
+  background: var(--control-bg);
+  border-color: var(--control-border);
+  color: var(--control-text);
+  transform: translateY(-1px);
+}
+
+.restore-quota-button svg {
+  height: 17px;
+  width: 17px;
 }
 
 .budget-reset-options:not(.hidden) {

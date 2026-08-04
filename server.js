@@ -20,6 +20,7 @@ const defaults = {
   totalAmount: 500,
   currency: "USD",
   rolloverEnabled: true,
+  splitTotalIntoDailyQuota: false,
   budgetResetEnabled: false,
   budgetResetDay: 1,
   resetRolloverOnBudgetReset: false,
@@ -34,10 +35,11 @@ const defaults = {
   themeBrightness: 1,
   startDate: new Date().toLocaleDateString("en-CA"),
   dailyOverrides: {},
+  budgetAdjustments: [],
   expenses: [],
 };
 function freshDefaults() {
-  return { ...defaults, startDate: new Date().toLocaleDateString("en-CA"), dailyOverrides: {}, expenses: [] };
+  return { ...defaults, startDate: new Date().toLocaleDateString("en-CA"), dailyOverrides: {}, budgetAdjustments: [], expenses: [] };
 }
 
 
@@ -105,6 +107,7 @@ function jsonEtag(value) {
 function stateForUser(db, userId) {
   const state = { ...freshDefaults(), ...(db.states[userId] || {}) };
   if (!state.dailyOverrides || typeof state.dailyOverrides !== "object") state.dailyOverrides = {};
+  if (!Array.isArray(state.budgetAdjustments)) state.budgetAdjustments = [];
   if (!Array.isArray(state.expenses)) state.expenses = [];
   return state;
 }
@@ -343,6 +346,7 @@ async function handleApi(req, res) {
         ...(body.state || {}),
         startDate: body.state?.startDate || previous.startDate || base.startDate,
         dailyOverrides: body.state?.dailyOverrides && typeof body.state.dailyOverrides === "object" ? body.state.dailyOverrides : previous.dailyOverrides || {},
+        budgetAdjustments: Array.isArray(body.state?.budgetAdjustments) ? body.state.budgetAdjustments : Array.isArray(previous.budgetAdjustments) ? previous.budgetAdjustments : [],
         expenses: Array.isArray(body.state?.expenses) ? body.state.expenses : Array.isArray(previous.expenses) ? previous.expenses : [],
       };
       writeDb(db);

@@ -7,6 +7,7 @@ const defaults = {
   totalAmount: 500,
   currency: "USD",
   rolloverEnabled: true,
+  splitTotalIntoDailyQuota: false,
   budgetResetEnabled: false,
   budgetResetDay: 1,
   resetRolloverOnBudgetReset: false,
@@ -21,6 +22,7 @@ const defaults = {
   themeBrightness: 1,
   startDate: todayISO(),
   dailyOverrides: {},
+  budgetAdjustments: [],
   expenses: [],
 };
 
@@ -61,11 +63,18 @@ const els = {
   totalAmountLabel: document.getElementById("totalAmountLabel"),
   currencyCode: document.getElementById("currencyCode"),
   rolloverEnabled: document.getElementById("rolloverEnabled"),
+  splitTotalIntoDailyQuota: document.getElementById("splitTotalIntoDailyQuota"),
+  splitBudgetSummary: document.getElementById("splitBudgetSummary"),
+  restoreManualQuotasWrap: document.getElementById("restoreManualQuotasWrap"),
+  restoreManualQuotas: document.getElementById("restoreManualQuotas"),
   budgetResetEnabled: document.getElementById("budgetResetEnabled"),
   budgetResetOptions: document.getElementById("budgetResetOptions"),
   budgetResetDay: document.getElementById("budgetResetDay"),
   resetRolloverOnBudgetReset: document.getElementById("resetRolloverOnBudgetReset"),
   budgetResetSummary: document.getElementById("budgetResetSummary"),
+  budgetTopUpAmount: document.getElementById("budgetTopUpAmount"),
+  budgetTopUpSummary: document.getElementById("budgetTopUpSummary"),
+  addBudget: document.getElementById("addBudget"),
   manualBudgetReset: document.getElementById("manualBudgetReset"),
   settingsForm: document.getElementById("settingsForm"),
   overviewTab: document.getElementById("overviewTab"),
@@ -262,6 +271,7 @@ async function loadStateFromServer() {
 function applyServerState(payload) {
   currentUser = payload.user;
   state = { ...defaults, ...payload.state, startDate: payload.state?.startDate || todayISO() };
+  state.budgetAdjustments = Array.isArray(state.budgetAdjustments) ? state.budgetAdjustments : [];
   stateEtag = payload._etag || stateEtag;
   lastSavedPayload = statePayload(false);
 }
@@ -483,6 +493,13 @@ function totalSpent() {
     .reduce((sum, expense) => sum + expense.amount, 0);
 }
 
+function budgetAdded() {
+  const boundary = currentBudgetBoundary();
+  return state.budgetAdjustments
+    .filter((adjustment) => expenseOccursAfterBoundary(adjustment, boundary))
+    .reduce((sum, adjustment) => sum + Number(adjustment.amount || 0), 0);
+}
+
 function money(value) {
   const currency = state.currency || defaults.currency;
   const zeroDecimalCurrencies = new Set(["TWD", "JPY", "KRW"]);
@@ -509,6 +526,10 @@ function getRolloverCarry() {
 }
 
 function quotaForDate(date) {
+  if (state.splitTotalIntoDailyQuota) {
+    const { days } = budgetSplitPeriod(date);
+    return (state.totalAmount + budgetAdded()) / days;
+  }
   const override = state.dailyOverrides?.[date];
   return Number.isFinite(override) ? override : state.dailyQuota;
 }
@@ -554,6 +575,25 @@ function nextBudgetResetISO(date = todayISO(), resetDay = state.budgetResetDay) 
     reset = resetDateForMonth(target.getFullYear(), target.getMonth() + 1, resetDay);
   }
   return reset.toLocaleDateString("en-CA");
+}
+
+function budgetSplitPeriod(date = todayISO()) {
+  const target = dateFromISO(date);
+  let start;
+  let end;
+  if (state.budgetResetEnabled) {
+    start = budgetCycleStartISO(date);
+    end = nextBudgetResetISO(date);
+  } else {
+    start = new Date(target.getFullYear(), target.getMonth(), 1).toLocaleDateString("en-CA");
+    end = new Date(target.getFullYear(), target.getMonth() + 1, 1).toLocaleDateString("en-CA");
+  }
+
+  const manualResetDate = String(state.lastBudgetResetDate || "");
+  if (manualResetDate >= start && manualResetDate <= date && manualResetDate < end) {
+    start = manualResetDate;
+  }
+  return { start, end, days: Math.max(1, datesBetween(start, end).length) };
 }
 
 function laterResetBoundary(first, second) {
@@ -699,8 +739,10 @@ function getMetrics() {
     .filter((expense) => !rolloverBoundary || expenseOccursAfterBoundary(expense, rolloverBoundary))
     .reduce((sum, expense) => sum + expense.amount, 0);
   const dailyRemaining = todayAllowance - spent;
-  const totalRemaining = state.totalAmount - totalSpent();
-  return { todayQuota, todayAllowance, spent, dailyRemaining, totalRemaining, carry };
+  const addedBudget = budgetAdded();
+  const totalBudget = state.totalAmount + addedBudget;
+  const totalRemaining = totalBudget - totalSpent();
+  return { todayQuota, todayAllowance, spent, dailyRemaining, totalRemaining, totalBudget, addedBudget, carry };
 }
 
 function normalizeColorScheme(scheme) {
@@ -896,6 +938,18 @@ function syncBudgetResetEditor() {
   els.budgetResetSummary.textContent = `Next reset: ${formatDateLabel(nextBudgetResetISO(todayISO(), resetDay))}${resetDay === 31 ? " · Uses the last day in shorter months" : ""}`;
 }
 
+function syncSplitBudgetEditor() {
+  const enabled = els.splitTotalIntoDailyQuota.checked;
+  els.dailyQuota.disabled = enabled;
+  els.todayQuota.disabled = enabled;
+  els.restoreManualQuotasWrap.classList.toggle("hidden", !(enabled && state.splitTotalIntoDailyQuota));
+  if (!enabled && state.splitTotalIntoDailyQuota) {
+    const savedTodayQuota = state.dailyOverrides?.[todayISO()];
+    els.dailyQuota.value = state.dailyQuota;
+    els.todayQuota.value = Number.isFinite(savedTodayQuota) ? savedTodayQuota : state.dailyQuota;
+  }
+}
+
 function render() {
   const today = todayISO();
   const metrics = getMetrics();
@@ -903,19 +957,29 @@ function render() {
   selectedActivityDate = selectedActivityDate || today;
   els.todayLabel.textContent = "Hi! ";
   els.activeProfileLabel.textContent = activeUser?.name || "";
-  els.dailyQuota.value = state.dailyQuota;
-  els.todayQuota.value = metrics.todayQuota;
+  const displayedSplitQuota = Math.round(metrics.todayQuota * 100) / 100;
+  els.dailyQuota.value = state.splitTotalIntoDailyQuota ? displayedSplitQuota : state.dailyQuota;
+  els.todayQuota.value = state.splitTotalIntoDailyQuota ? displayedSplitQuota : metrics.todayQuota;
   els.totalAmount.value = state.totalAmount;
   els.currencyCode.value = state.currency || defaults.currency;
   els.rolloverEnabled.checked = state.rolloverEnabled;
+  els.splitTotalIntoDailyQuota.checked = Boolean(state.splitTotalIntoDailyQuota);
   els.budgetResetEnabled.checked = Boolean(state.budgetResetEnabled);
   els.budgetResetDay.value = normalizeBudgetResetDay(state.budgetResetDay);
   els.resetRolloverOnBudgetReset.checked = Boolean(state.resetRolloverOnBudgetReset);
+  els.budgetTopUpSummary.textContent = `Added this cycle: ${money(metrics.addedBudget)}`;
+  const splitPeriod = budgetSplitPeriod(today);
+  els.splitBudgetSummary.textContent = state.splitTotalIntoDailyQuota
+    ? `${money(metrics.todayQuota)} per day across ${splitPeriod.days} days in this cycle.`
+    : "Automatically divide the total budget evenly across the current cycle.";
+  els.restoreManualQuotasWrap.classList.toggle("hidden", !state.splitTotalIntoDailyQuota);
+  syncSplitBudgetEditor();
   syncBudgetResetEditor();
   const resetSummary = state.budgetResetEnabled
-    ? ` · ${money(state.totalAmount)} each reset`
-    : ` · ${money(state.totalAmount)} total`;
-  els.quotaSummary.textContent = money(metrics.todayQuota) + " today · " + money(state.dailyQuota) + " daily" + resetSummary;
+    ? ` · ${money(state.totalAmount)} each reset${metrics.addedBudget > 0 ? ` · ${money(metrics.addedBudget)} added` : ""}`
+    : ` · ${money(metrics.totalBudget)} total`;
+  const displayedDailyQuota = state.splitTotalIntoDailyQuota ? metrics.todayQuota : state.dailyQuota;
+  els.quotaSummary.textContent = money(metrics.todayQuota) + " today · " + money(displayedDailyQuota) + " daily" + resetSummary;
   els.expenseSummary.textContent = money(metrics.spent) + " spent today · " + state.expenses.length + " entries";
   selectedExpenseDate = selectedExpenseDate || today;
   els.expenseNameSuggestions.innerHTML = expenseSuggestions()
@@ -934,7 +998,7 @@ function render() {
     : "Rollover off";
 
   const dailyPct = metrics.todayAllowance <= 0 ? 0 : clamp(metrics.dailyRemaining / metrics.todayAllowance, 0, 1) * 100;
-  const totalPct = state.totalAmount <= 0 ? 0 : clamp(metrics.totalRemaining / state.totalAmount, 0, 1) * 100;
+  const totalPct = metrics.totalBudget <= 0 ? 0 : clamp(metrics.totalRemaining / metrics.totalBudget, 0, 1) * 100;
   els.dailyBar.style.width = `${dailyPct}%`;
   els.totalBar.style.width = `${totalPct}%`;
   els.dailyBar.style.background = metrics.dailyRemaining < 0 ? "var(--danger)" : "var(--primary)";
@@ -1344,6 +1408,57 @@ function startExpenseEdit(expense) {
 
 els.budgetResetEnabled.addEventListener("change", syncBudgetResetEditor);
 els.budgetResetDay.addEventListener("input", syncBudgetResetEditor);
+els.splitTotalIntoDailyQuota.addEventListener("change", syncSplitBudgetEditor);
+
+els.restoreManualQuotas.addEventListener("click", async () => {
+  if (!state.splitTotalIntoDailyQuota) return;
+  state.splitTotalIntoDailyQuota = false;
+  try {
+    await saveState({ fields: { splitTotalIntoDailyQuota: false } });
+    render();
+    showAppMessage("Previous manual quotas restored.");
+  } catch (error) {
+    state.splitTotalIntoDailyQuota = true;
+    render();
+    showAppMessage("Could not restore manual quotas: " + error.message, "error");
+  }
+});
+
+els.addBudget.addEventListener("click", async () => {
+  const amount = numberValue(els.budgetTopUpAmount.value);
+  if (amount <= 0) {
+    showAppMessage("Enter an amount greater than zero.", "error");
+    els.budgetTopUpAmount.focus();
+    return;
+  }
+
+  const previousAdjustments = state.budgetAdjustments;
+  const adjustment = {
+    id: makeId(),
+    amount,
+    date: todayISO(),
+    createdAt: Date.now(),
+  };
+  state.budgetAdjustments = [...previousAdjustments, adjustment];
+  els.budgetTopUpAmount.value = "";
+
+  try {
+    await saveState({ fields: { budgetAdjustments: state.budgetAdjustments } });
+    render();
+    showAppMessage(`${money(amount)} added to the current budget.`);
+  } catch (error) {
+    state.budgetAdjustments = previousAdjustments;
+    els.budgetTopUpAmount.value = amount;
+    render();
+    showAppMessage("Could not add budget: " + error.message, "error");
+  }
+});
+
+els.budgetTopUpAmount.addEventListener("keydown", (event) => {
+  if (event.key !== "Enter") return;
+  event.preventDefault();
+  els.addBudget.click();
+});
 
 els.manualBudgetReset.addEventListener("click", async () => {
   const resetAmount = numberValue(els.totalAmount.value);
@@ -1398,7 +1513,8 @@ els.manualBudgetReset.addEventListener("click", async () => {
 
 els.settingsForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const nextDailyQuota = numberValue(els.dailyQuota.value);
+  const splitTotalIntoDailyQuota = els.splitTotalIntoDailyQuota.checked;
+  const nextDailyQuota = splitTotalIntoDailyQuota ? state.dailyQuota : numberValue(els.dailyQuota.value);
   const nextRolloverEnabled = els.rolloverEnabled.checked;
   const quotaChanged = nextDailyQuota !== state.dailyQuota;
   const rolloverTurnedOn = nextRolloverEnabled && !state.rolloverEnabled;
@@ -1407,10 +1523,13 @@ els.settingsForm.addEventListener("submit", async (event) => {
   }
   state.dailyQuota = nextDailyQuota;
   state.dailyOverrides = state.dailyOverrides || {};
-  state.dailyOverrides[todayISO()] = numberValue(els.todayQuota.value);
+  if (!splitTotalIntoDailyQuota) {
+    state.dailyOverrides[todayISO()] = numberValue(els.todayQuota.value);
+  }
   state.totalAmount = numberValue(els.totalAmount.value);
   state.currency = els.currencyCode.value;
   state.rolloverEnabled = nextRolloverEnabled;
+  state.splitTotalIntoDailyQuota = splitTotalIntoDailyQuota;
   state.budgetResetEnabled = els.budgetResetEnabled.checked;
   state.budgetResetDay = normalizeBudgetResetDay(els.budgetResetDay.value);
   state.resetRolloverOnBudgetReset = els.resetRolloverOnBudgetReset.checked;
@@ -1421,6 +1540,7 @@ els.settingsForm.addEventListener("submit", async (event) => {
       totalAmount: state.totalAmount,
       currency: state.currency,
       rolloverEnabled: state.rolloverEnabled,
+      splitTotalIntoDailyQuota: state.splitTotalIntoDailyQuota,
       budgetResetEnabled: state.budgetResetEnabled,
       budgetResetDay: state.budgetResetDay,
       resetRolloverOnBudgetReset: state.resetRolloverOnBudgetReset,

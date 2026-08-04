@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260803-31" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260804-36" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -191,6 +191,21 @@
                   </span>
                   <input id="rolloverEnabled" type="checkbox" class="h-5 w-5 accent-[var(--primary)]" />
                 </label>
+                <div class="split-budget-option mt-4 rounded-lg border border-black/10 bg-white/65">
+                  <label class="flex cursor-pointer items-center justify-between gap-3 p-3">
+                    <span>
+                      <span class="block text-sm font-semibold">Split total into daily quota</span>
+                      <span id="splitBudgetSummary" class="block text-xs font-medium" style="color: var(--muted)">Automatically divide the total budget evenly across the current cycle.</span>
+                    </span>
+                    <input id="splitTotalIntoDailyQuota" type="checkbox" class="h-5 w-5 accent-[var(--primary)]" />
+                  </label>
+                  <div id="restoreManualQuotasWrap" class="hidden border-t border-white/10 p-3 pt-3">
+                    <button id="restoreManualQuotas" class="restore-quota-button focus-ring rounded-lg border px-3 text-sm font-semibold shadow-sm" type="button">
+                      <i data-lucide="undo-2" aria-hidden="true"></i>
+                      <span>Restore manual quotas</span>
+                    </button>
+                  </div>
+                </div>
                 <label class="mt-4 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-black/10 bg-white/65 p-3">
                   <span>
                     <span class="block text-sm font-semibold">Monthly budget reset</span>
@@ -206,6 +221,23 @@
                     </label>
                   </div>
                   <p id="budgetResetSummary" class="mt-3 text-xs font-medium" style="color: var(--muted)"></p>
+                </div>
+                <div class="manual-budget-add mt-4 rounded-lg border border-black/10 bg-white/65 p-3">
+                  <div>
+                    <span class="block text-sm font-semibold">Add budget</span>
+                    <span class="block text-xs font-medium" style="color: var(--muted)">Increase this cycle’s available balance without resetting expenses.</span>
+                  </div>
+                  <div class="budget-top-up-controls mt-3">
+                    <label class="min-w-0 flex-1">
+                      <span class="sr-only">Budget amount to add</span>
+                      <input id="budgetTopUpAmount" type="number" min="0.01" step="0.01" inputmode="decimal" placeholder="Amount" class="focus-ring w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold tabular-nums" />
+                    </label>
+                    <button id="addBudget" class="budget-add-button focus-ring shrink-0 rounded-lg border px-3 text-sm font-semibold shadow-sm" type="button">
+                      <i data-lucide="plus" aria-hidden="true"></i>
+                      <span>Add</span>
+                    </button>
+                  </div>
+                  <p id="budgetTopUpSummary" class="mt-2 text-xs font-medium" style="color: var(--muted)"></p>
                 </div>
                 <div class="manual-budget-reset mt-4 rounded-lg border border-black/10 bg-white/65 p-3">
                   <label class="flex cursor-pointer items-center justify-between gap-3">
@@ -413,6 +445,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260803-31"></script>
+    <script src="/assets/js/app.js?v=20260804-36"></script>
   </body>
 </html>
