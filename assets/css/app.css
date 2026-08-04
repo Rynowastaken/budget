@@ -446,7 +446,7 @@ button[style*="--primary"],
 
 #emptyState,
 label:has(#rolloverEnabled),
-label:has(#todayLeftUsesTotal),
+.split-budget-option,
 label:has(#budgetResetEnabled),
 .budget-reset-options,
 .manual-budget-add,
@@ -488,6 +488,23 @@ label:has(#budgetResetEnabled),
 
 .budget-reset-options:not(.hidden) {
   animation: added-item-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.split-budget-options:not(.hidden) {
+  animation: added-item-enter 0.28s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.restore-manual-quotas {
+  align-items: center;
+  display: inline-flex;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 38px;
+}
+
+.restore-manual-quotas svg {
+  height: 17px;
+  width: 17px;
 }
 
 .manual-reset-button {
@@ -1138,6 +1155,7 @@ nav[role="tablist"].glass {
   .expense-suggestion.is-entering,
   .activity-cell.is-entering,
   .budget-reset-options:not(.hidden),
+  .split-budget-options:not(.hidden),
   #expenseForm:not(.hidden) {
     animation: none;
   }
