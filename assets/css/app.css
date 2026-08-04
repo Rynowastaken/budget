@@ -446,8 +446,8 @@ button[style*="--primary"],
 
 #emptyState,
 label:has(#rolloverEnabled),
+label:has(#todayLeftUsesTotal),
 label:has(#budgetResetEnabled),
-.split-budget-option,
 .budget-reset-options,
 .manual-budget-add,
 .manual-budget-reset {
@@ -459,12 +459,6 @@ label:has(#budgetResetEnabled),
   align-items: center;
   display: flex;
   gap: 0.65rem;
-}
-
-#dailyQuota:disabled,
-#todayQuota:disabled {
-  cursor: not-allowed;
-  opacity: 0.58;
 }
 
 .budget-add-button {
@@ -488,30 +482,6 @@ label:has(#budgetResetEnabled),
 }
 
 .budget-add-button svg {
-  height: 17px;
-  width: 17px;
-}
-
-.restore-quota-button {
-  align-items: center;
-  background: rgba(255, 255, 255, 0.08);
-  border-color: var(--glass-border);
-  color: var(--foreground);
-  display: inline-flex;
-  gap: 0.45rem;
-  justify-content: center;
-  min-height: 38px;
-  transition: background-color 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
-}
-
-.restore-quota-button:hover {
-  background: var(--control-bg);
-  border-color: var(--control-border);
-  color: var(--control-text);
-  transform: translateY(-1px);
-}
-
-.restore-quota-button svg {
   height: 17px;
   width: 17px;
 }

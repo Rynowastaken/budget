@@ -20,7 +20,7 @@ const defaults = {
   totalAmount: 500,
   currency: "USD",
   rolloverEnabled: true,
-  splitTotalIntoDailyQuota: false,
+  todayLeftUsesTotal: false,
   budgetResetEnabled: false,
   budgetResetDay: 1,
   resetRolloverOnBudgetReset: false,

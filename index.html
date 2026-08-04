@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260804-36" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260804-37" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -105,7 +105,7 @@
       <section class="grid gap-5">
         <div class="grid gap-5">
           <article class="rounded-lg glass p-5">
-            <p class="text-sm font-semibold" style="color: var(--muted)">Today left</p>
+            <p id="todayRemainingLabel" class="text-sm font-semibold" style="color: var(--muted)">Today left</p>
             <p id="dailyRemaining" class="mt-3 text-3xl font-semibold tabular-nums"></p>
             <div class="mt-4 h-2 overflow-hidden rounded-full bg-black/10">
               <div id="dailyBar" class="h-full rounded-full transition-all" style="background: var(--primary)"></div>
@@ -191,21 +191,13 @@
                   </span>
                   <input id="rolloverEnabled" type="checkbox" class="h-5 w-5 accent-[var(--primary)]" />
                 </label>
-                <div class="split-budget-option mt-4 rounded-lg border border-black/10 bg-white/65">
-                  <label class="flex cursor-pointer items-center justify-between gap-3 p-3">
-                    <span>
-                      <span class="block text-sm font-semibold">Split total into daily quota</span>
-                      <span id="splitBudgetSummary" class="block text-xs font-medium" style="color: var(--muted)">Automatically divide the total budget evenly across the current cycle.</span>
-                    </span>
-                    <input id="splitTotalIntoDailyQuota" type="checkbox" class="h-5 w-5 accent-[var(--primary)]" />
-                  </label>
-                  <div id="restoreManualQuotasWrap" class="hidden border-t border-white/10 p-3 pt-3">
-                    <button id="restoreManualQuotas" class="restore-quota-button focus-ring rounded-lg border px-3 text-sm font-semibold shadow-sm" type="button">
-                      <i data-lucide="undo-2" aria-hidden="true"></i>
-                      <span>Restore manual quotas</span>
-                    </button>
-                  </div>
-                </div>
+                <label class="mt-4 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-black/10 bg-white/65 p-3">
+                  <span>
+                    <span class="block text-sm font-semibold">Use total balance for top card</span>
+                    <span class="block text-xs font-medium" style="color: var(--muted)">Show the full remaining budget instead of today’s allowance.</span>
+                  </span>
+                  <input id="todayLeftUsesTotal" type="checkbox" class="h-5 w-5 accent-[var(--primary)]" />
+                </label>
                 <label class="mt-4 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-black/10 bg-white/65 p-3">
                   <span>
                     <span class="block text-sm font-semibold">Monthly budget reset</span>
@@ -445,6 +437,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260804-36"></script>
+    <script src="/assets/js/app.js?v=20260804-37"></script>
   </body>
 </html>
