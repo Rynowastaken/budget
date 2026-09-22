@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-64" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-65" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -82,10 +82,10 @@
           </summary>
           <div class="auth-debug-body">
             <label class="block">
-              <span class="text-sm font-semibold" style="color: var(--muted)">Access key</span>
-              <input id="debugAccessKey" type="password" autocomplete="off" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold" />
+              <span class="text-sm font-semibold" style="color: var(--muted)">6-digit code</span>
+              <input id="debugAccessKey" type="password" inputmode="numeric" pattern="[0-9]{6}" maxlength="6" autocomplete="one-time-code" placeholder="000000" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold tabular-nums tracking-[0.2em]" />
             </label>
-            <p class="mt-2 text-xs font-medium" style="color: var(--faint)">Leave this blank for a normal login. The key is only kept for the current browser session.</p>
+            <p class="mt-2 text-xs font-medium" style="color: var(--faint)">Enter the code shown in the server terminal. A new code is generated every time the server starts. Leave it blank for a normal login.</p>
           </div>
         </details>
 
@@ -734,6 +734,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260922-64"></script>
+    <script src="/assets/js/app.js?v=20260922-65"></script>
   </body>
 </html>
