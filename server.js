@@ -16,6 +16,12 @@ const imageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avi
 const staticCache = new Map();
 const serverInstanceId = crypto.randomUUID?.() || crypto.randomBytes(16).toString("hex");
 const serverStartedAt = Date.now();
+const debugUserIds = new Set(
+  String(process.env.BUDGET_DEBUG_USERS || "")
+    .split(",")
+    .map((value) => normalizeProfileName(value))
+    .filter(Boolean),
+);
 let dbCache = null;
 let restartScheduled = false;
 
@@ -79,6 +85,14 @@ function normalizeProfileName(name) {
 
 function publicUser(user) {
   return { id: user.id, name: user.name };
+}
+
+function canUseDebug(user) {
+  return Boolean(user?.id && debugUserIds.has(normalizeProfileName(user.id)));
+}
+
+function authenticatedUser(user) {
+  return { ...publicUser(user), debugAccess: canUseDebug(user) };
 }
 
 function sendJson(res, status, body, options = {}) {
@@ -239,7 +253,7 @@ async function handleApi(req, res) {
       }
 
       const state = stateForUser(db, id);
-      sendJson(res, 200, { user: publicUser(user), state }, { cacheControl: "private, no-cache", etag: jsonEtag(state) });
+      sendJson(res, 200, { user: authenticatedUser(user), state }, { cacheControl: "private, no-cache", etag: jsonEtag(state) });
       return;
     }
 
@@ -247,6 +261,10 @@ async function handleApi(req, res) {
       const user = authenticate(req, db);
       if (!user) {
         sendError(res, 401, "Login required.");
+        return;
+      }
+      if (!canUseDebug(user)) {
+        sendError(res, 403, "Debug access is not enabled for this profile.");
         return;
       }
       sendJson(res, 200, {
@@ -261,6 +279,10 @@ async function handleApi(req, res) {
       const user = authenticate(req, db);
       if (!user) {
         sendError(res, 401, "Login required.");
+        return;
+      }
+      if (!canUseDebug(user)) {
+        sendError(res, 403, "Debug access is not enabled for this profile.");
         return;
       }
       if (restartScheduled) {
@@ -300,7 +322,7 @@ async function handleApi(req, res) {
         sendNotModified(res, cacheHeaders);
         return;
       }
-      sendJson(res, 200, { user: publicUser(user), state }, { cacheControl: "private, no-cache", etag });
+      sendJson(res, 200, { user: authenticatedUser(user), state }, { cacheControl: "private, no-cache", etag });
       return;
     }
 
