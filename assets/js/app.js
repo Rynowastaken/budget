@@ -1871,7 +1871,13 @@ els.settingsForm.addEventListener("submit", async (event) => {
 
 els.loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  await openProfile(els.profileName.value, els.profilePin.value, els.debugAccessKey.value);
+  const debugCode = els.debugAccessKey.value.replace(/\D/g, "").slice(0, 6);
+  els.debugAccessKey.value = debugCode;
+  await openProfile(els.profileName.value, els.profilePin.value, debugCode);
+});
+
+els.debugAccessKey.addEventListener("input", () => {
+  els.debugAccessKey.value = els.debugAccessKey.value.replace(/\D/g, "").slice(0, 6);
 });
 
 els.profilePickerToggle.addEventListener("click", () => {
@@ -2502,7 +2508,9 @@ async function waitForServerRestart(previousInstanceId) {
   while (Date.now() < deadline) {
     await new Promise((resolve) => setTimeout(resolve, 450));
     try {
-      const status = await api("/api/debug/status");
+      const response = await fetch("/api/server/status", { cache: "no-store" });
+      if (!response.ok) continue;
+      const status = await response.json();
       if (status.instanceId && status.instanceId !== previousInstanceId) {
         return true;
       }
@@ -2526,7 +2534,11 @@ els.debugRestartServer?.addEventListener("click", async () => {
     if (!restarted) {
       throw new Error("The server did not come back within 15 seconds.");
     }
-    setDebugRestartStatus("Server is back. Reloading…");
+    setDebugRestartStatus("Server is back with a new Debug code. Reloading…");
+    if (session) {
+      session.debugKey = "";
+      sessionStorage.setItem(sessionKey, JSON.stringify(session));
+    }
     window.location.reload();
   } catch (error) {
     els.debugRestartServer.disabled = false;
