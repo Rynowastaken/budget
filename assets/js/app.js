@@ -9,7 +9,7 @@ function loadDebugDateOffset() {
   return Number.isFinite(value) ? Math.min(3650, Math.max(-3650, value)) : 0;
 }
 
-let debugDateOffset = loadDebugDateOffset();
+let debugDateOffset = 0;
 
 const todayISO = () => {
   const date = new Date();
@@ -334,15 +334,24 @@ async function loadStateFromServer() {
 
 function syncDebugAccess() {
   const hasDebugAccess = Boolean(currentUser?.debugAccess);
+  const nextOffset = hasDebugAccess ? loadDebugDateOffset() : 0;
+  const offsetChanged = debugDateOffset !== nextOffset;
+  debugDateOffset = nextOffset;
   els.debugSettings?.classList.toggle("hidden", !hasDebugAccess);
-  if (!hasDebugAccess && debugDateOffset !== 0) {
-    debugDateOffset = 0;
-  }
+  return offsetChanged;
 }
 
 function applyServerState(payload) {
+  const previousUserId = currentUser?.id || "";
   currentUser = payload.user;
-  syncDebugAccess();
+  const debugOffsetChanged = syncDebugAccess();
+  const userChanged = previousUserId !== currentUser?.id;
+  if (userChanged || debugOffsetChanged) {
+    selectedActivityDate = todayISO();
+    visibleActivityMonth = monthStart(selectedActivityDate);
+    selectedExpenseDate = selectedActivityDate;
+    visibleExpenseMonth = monthStart(selectedExpenseDate);
+  }
   state = { ...defaults, ...payload.state, startDate: payload.state?.startDate || todayISO() };
   state.splitTotalIntoDailyQuota = Boolean(state.splitTotalIntoDailyQuota);
   state.splitBudgetDays = normalizeSplitBudgetDays(state.splitBudgetDays);
@@ -2419,11 +2428,10 @@ function openSettingsDialog() {
     pendingThemeColorfulness,
     pendingThemeBrightness,
   ));
+  syncDebugAccess();
   if (currentUser?.debugAccess) {
-    debugDateOffset = loadDebugDateOffset();
     syncDebugDateControls();
   }
-  syncDebugAccess();
   if (!els.settingsDialog.open) els.settingsDialog.showModal();
   animateSettingsDialog(true);
 }
