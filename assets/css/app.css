@@ -531,6 +531,9 @@ label:has(#budgetResetEnabled),
   border: 1px solid var(--glass-border);
   border-radius: 12px;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.045);
+  box-sizing: border-box;
+  justify-self: center;
+  margin-inline: auto;
   max-width: 100%;
   min-width: 0;
   padding: 0.7rem 0.75rem 0.75rem;
@@ -625,7 +628,7 @@ label:has(#budgetResetEnabled),
   }
 
   .activity-layout:not(.is-form-open) .activity-heatmap-shell {
-    justify-self: end;
+    justify-self: center;
   }
 }
 
@@ -710,16 +713,26 @@ label:has(#budgetResetEnabled),
 }
 
 @media (max-width: 639px) {
+  .activity-heatmap-shell {
+    padding: 0.9rem;
+    width: min(100%, 22rem);
+  }
+
   .activity-heatmap-header {
-    align-items: flex-start;
-    flex-direction: column;
-    gap: 0.45rem;
+    align-items: center;
+    flex-direction: row;
+    flex-wrap: wrap;
+    gap: 0.5rem 0.75rem;
+    justify-content: center;
+    text-align: center;
   }
 
   .activity-heatmap-viewport {
     border-radius: 8px;
-    overflow: auto;
+    overflow-x: auto;
+    overflow-y: hidden;
     overscroll-behavior: contain;
+    padding: 0.15rem 0 0.3rem;
     scrollbar-color: var(--primary) rgba(255, 255, 255, 0.06);
     scrollbar-width: thin;
     touch-action: pan-x pan-y;
@@ -731,7 +744,10 @@ label:has(#budgetResetEnabled),
   }
 
   .activity-heatmap {
-    grid-template-columns: repeat(var(--activity-month-weeks, 6), var(--heatmap-mobile-cell-size, 13px));
+    --heatmap-mobile-cell-size: clamp(20px, 6vw, 26px);
+    gap: 5px;
+    grid-template-columns: repeat(var(--activity-month-weeks, 6), var(--heatmap-mobile-cell-size));
+    margin-inline: auto;
   }
 
   .activity-heatmap-viewport.is-pinching .activity-heatmap {
@@ -740,8 +756,8 @@ label:has(#budgetResetEnabled),
 
   .activity-cell,
   .activity-cell-placeholder {
-    max-width: var(--heatmap-mobile-cell-size, 13px);
-    width: var(--heatmap-mobile-cell-size, 13px);
+    max-width: var(--heatmap-mobile-cell-size);
+    width: var(--heatmap-mobile-cell-size);
   }
 }
 
