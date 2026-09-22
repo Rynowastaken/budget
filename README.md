@@ -15,12 +15,12 @@ A small, self-hosted budget tracker that helps you keep an eye on daily spending
 <table>
   <tr>
     <td align="center">
-      <img src="docs/screenshots/quota.webp" alt="Budget quota controls" width="420" />
+      <img src="docs/screenshots/quota.png" alt="Budget quota controls" width="420" />
       <br />
       <sub><b>💰 Quota controls</b> — currency, rollover, and advanced budget options.</sub>
     </td>
     <td align="center">
-      <img src="docs/screenshots/activity.webp" alt="Budget activity heatmap" width="420" />
+      <img src="docs/screenshots/activity.png" alt="Budget activity heatmap" width="420" />
       <br />
       <sub><b>📅 Activity</b> — pick a day and see your spending heatmap.</sub>
     </td>
