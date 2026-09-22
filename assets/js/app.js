@@ -80,6 +80,10 @@ const els = {
   totalAmount: document.getElementById("totalAmount"),
   totalAmountLabel: document.getElementById("totalAmountLabel"),
   currencyCode: document.getElementById("currencyCode"),
+  currencyPicker: document.getElementById("currencyPicker"),
+  currencyToggle: document.getElementById("currencyToggle"),
+  currencyValue: document.getElementById("currencyValue"),
+  currencyMenu: document.getElementById("currencyMenu"),
   rolloverEnabled: document.getElementById("rolloverEnabled"),
   splitTotalIntoDailyQuota: document.getElementById("splitTotalIntoDailyQuota"),
   splitBudgetOptions: document.getElementById("splitBudgetOptions"),
@@ -1004,6 +1008,36 @@ function roundedInputValue(value) {
   return Math.round((Number(value) + Number.EPSILON) * 100) / 100;
 }
 
+function syncCurrencyPicker() {
+  if (!els.currencyMenu) return;
+  const value = els.currencyCode.value || defaults.currency;
+  els.currencyValue.textContent = value;
+  els.currencyMenu.querySelectorAll("[data-currency]").forEach((option) => {
+    const selected = option.dataset.currency === value;
+    option.setAttribute("aria-selected", String(selected));
+  });
+}
+
+function setCurrencyPickerOpen(isOpen, focusSelected = false) {
+  if (!els.currencyPicker || !els.currencyMenu) return;
+  els.currencyPicker.classList.toggle("is-open", isOpen);
+  els.currencyMenu.classList.toggle("hidden", !isOpen);
+  els.currencyToggle.setAttribute("aria-expanded", String(isOpen));
+  if (isOpen && focusSelected) {
+    requestAnimationFrame(() => {
+      (els.currencyMenu.querySelector('[aria-selected="true"]') || els.currencyMenu.querySelector("[data-currency]"))?.focus();
+    });
+  }
+}
+
+function chooseCurrency(value) {
+  if (!els.currencyCode.querySelector(`option[value="${value}"]`)) return;
+  els.currencyCode.value = value;
+  syncCurrencyPicker();
+  setCurrencyPickerOpen(false);
+  els.currencyToggle.focus();
+}
+
 function render() {
   const today = todayISO();
   const metrics = getMetrics();
@@ -1015,6 +1049,7 @@ function render() {
   els.todayQuota.value = metrics.todayQuota;
   els.totalAmount.value = state.totalAmount;
   els.currencyCode.value = state.currency || defaults.currency;
+  syncCurrencyPicker();
   els.rolloverEnabled.checked = state.rolloverEnabled;
   els.splitTotalIntoDailyQuota.checked = Boolean(state.splitTotalIntoDailyQuota);
   els.splitBudgetDays.value = normalizeSplitBudgetDays(state.splitBudgetDays);
@@ -1573,6 +1608,54 @@ els.manualBudgetReset.addEventListener("click", async () => {
     render();
     showAppMessage("Could not reset budget: " + error.message, "error");
   }
+});
+
+els.currencyToggle?.addEventListener("click", () => {
+  const willOpen = !els.currencyPicker.classList.contains("is-open");
+  setCurrencyPickerOpen(willOpen, false);
+});
+
+els.currencyToggle?.addEventListener("keydown", (event) => {
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+  event.preventDefault();
+  setCurrencyPickerOpen(true, true);
+});
+
+els.currencyMenu?.addEventListener("click", (event) => {
+  const option = event.target.closest("[data-currency]");
+  if (!option) return;
+  chooseCurrency(option.dataset.currency);
+});
+
+els.currencyMenu?.addEventListener("keydown", (event) => {
+  const options = [...els.currencyMenu.querySelectorAll("[data-currency]")];
+  const currentIndex = options.indexOf(document.activeElement);
+  if (event.key === "Escape") {
+    event.preventDefault();
+    setCurrencyPickerOpen(false);
+    els.currencyToggle.focus();
+    return;
+  }
+  if (event.key === "Enter" || event.key === " ") {
+    const option = event.target.closest("[data-currency]");
+    if (!option) return;
+    event.preventDefault();
+    chooseCurrency(option.dataset.currency);
+    return;
+  }
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+  event.preventDefault();
+  const direction = event.key === "ArrowDown" ? 1 : -1;
+  const nextIndex = currentIndex < 0
+    ? 0
+    : (currentIndex + direction + options.length) % options.length;
+  options[nextIndex]?.focus();
+});
+
+document.addEventListener("click", (event) => {
+  if (!els.currencyPicker?.classList.contains("is-open")) return;
+  if (els.currencyPicker.contains(event.target)) return;
+  setCurrencyPickerOpen(false);
 });
 
 els.settingsForm.addEventListener("submit", async (event) => {
