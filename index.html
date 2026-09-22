@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-47" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-48" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -324,17 +324,15 @@
             <div class="activity-heading-row">
               <div class="min-w-0">
                 <h2 class="text-lg font-semibold">Activity</h2>
-                <p id="activitySelectedMeta" class="activity-selected-meta">Selected day</p>
+                <p class="activity-selected-meta" aria-live="polite">
+                  <span id="activitySelectedMeta">Selected day</span>
+                  <span class="activity-meta-divider" aria-hidden="true">•</span>
+                  <span class="activity-meta-spent"><strong id="activitySelectedTotal" class="tabular-nums">$0.00</strong> spent</span>
+                </p>
               </div>
-              <div class="activity-heading-actions">
-                <div class="activity-selected-total" aria-live="polite">
-                  <span>Spent</span>
-                  <strong id="activitySelectedTotal" class="tabular-nums">$0.00</strong>
-                </div>
-                <button id="toggleExpenseForm" class="focus-ring icon-control shrink-0 rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Add expense" title="Add expense" aria-expanded="false" aria-controls="expenseForm">
-                  <i data-lucide="plus" aria-hidden="true"></i>
-                </button>
-              </div>
+              <button id="toggleExpenseForm" class="focus-ring icon-control shrink-0 rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Add expense" title="Add expense" aria-expanded="false" aria-controls="expenseForm">
+                <i data-lucide="plus" aria-hidden="true"></i>
+              </button>
             </div>
             <div class="activity-controls mt-4">
               <div class="max-w-sm">
