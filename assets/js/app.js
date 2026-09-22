@@ -1734,6 +1734,10 @@ els.activityTab.addEventListener("click", () => {
 
 els.toggleExpenseForm.addEventListener("click", () => {
   const willOpen = els.expenseForm.classList.contains("hidden");
+  if (willOpen) {
+    selectedExpenseDate = selectedActivityDate || todayISO();
+    visibleExpenseMonth = monthStart(selectedExpenseDate);
+  }
   resetExpenseForm();
   setExpenseFormVisible(willOpen);
   if (willOpen && window.matchMedia("(hover: hover) and (pointer: fine)").matches) {
