@@ -66,9 +66,11 @@ const els = {
   profilePickerMenu: document.getElementById("profilePickerMenu"),
   profileName: document.getElementById("profileName"),
   profilePin: document.getElementById("profilePin"),
-  debugLoginAccess: document.getElementById("debugLoginAccess"),
-  debugAccessKey: document.getElementById("debugAccessKey"),
   rememberLogin: document.getElementById("rememberLogin"),
+  debugUserManagerDialog: document.getElementById("debugUserManagerDialog"),
+  debugUserManagerClose: document.getElementById("debugUserManagerClose"),
+  debugUserList: document.getElementById("debugUserList"),
+  debugUserManagerStatus: document.getElementById("debugUserManagerStatus"),
   authLogo: document.getElementById("authLogo"),
   serverLogo: document.getElementById("serverLogo"),
   authMessage: document.getElementById("authMessage"),
@@ -232,6 +234,9 @@ let pendingThemeBrightness = defaults.themeBrightness;
 let settingsDialogAnimation = null;
 let pendingBackgroundImage = "";
 let pendingBackgroundImageName = "";
+let hiddenDebugCodeBuffer = "";
+let hiddenDebugCodeTimer = null;
+let debugAdminCode = "";
 const assetCacheKey = "finance-manager-assets-v1";
 const androidBridge = window.FinanceManagerAndroid;
 document.body.classList.toggle("android-webview", Boolean(androidBridge?.changeServer));
@@ -244,11 +249,11 @@ function loadSession() {
   }
 }
 
-function saveSession(userId, pin, remember = false, debugKey = "") {
-  session = { userId, pin, remember, debugKey: String(debugKey || "") };
+function saveSession(userId, pin, remember = false) {
+  session = { userId, pin, remember };
   sessionStorage.setItem(sessionKey, JSON.stringify(session));
   if (remember) {
-    localStorage.setItem(persistentSessionKey, JSON.stringify({ userId, pin, remember }));
+    localStorage.setItem(persistentSessionKey, JSON.stringify(session));
   } else {
     localStorage.removeItem(persistentSessionKey);
   }
@@ -269,7 +274,6 @@ async function api(path, options = {}) {
   if (options.body) headers["Content-Type"] = "application/json";
   if (session?.userId) headers["X-Profile-Id"] = session.userId;
   if (session?.pin !== undefined) headers["X-Profile-Pin"] = session.pin;
-  if (session?.debugKey) headers["X-Debug-Key"] = session.debugKey;
 
   const response = await fetch(path, { ...options, headers });
   if (response.status === 304) {
@@ -491,8 +495,6 @@ function showAuth(message = "", clearSaved = true) {
   els.appShell.classList.remove("flex");
   els.authMessage.textContent = message;
   els.rememberLogin.checked = Boolean(!clearSaved && previousSession?.remember);
-  els.debugAccessKey.value = "";
-  els.debugLoginAccess.open = false;
   if (!clearSaved && previousSession?.userId) {
     els.profileName.value = previousSession.userId;
     els.profilePin.value = previousSession.pin || "";
@@ -609,7 +611,7 @@ async function renderProfileOptions() {
   renderIcons();
 }
 
-async function openProfile(name, pin, debugKey = "") {
+async function openProfile(name, pin) {
   const cleanName = name.trim();
   const id = normalizeProfileName(cleanName);
   if (!id) {
@@ -620,13 +622,11 @@ async function openProfile(name, pin, debugKey = "") {
   try {
     const payload = await api("/api/login", {
       method: "POST",
-      body: JSON.stringify({ name: cleanName, pin, debugKey: String(debugKey || "") }),
+      body: JSON.stringify({ name: cleanName, pin }),
     });
-    saveSession(payload.user.id, pin, els.rememberLogin.checked, debugKey);
+    saveSession(payload.user.id, pin, els.rememberLogin.checked);
     applyServerState(payload);
     els.profilePin.value = "";
-    els.debugAccessKey.value = "";
-    els.debugLoginAccess.open = false;
     showApp();
   } catch (error) {
     els.authMessage.textContent = error.message;
@@ -1871,13 +1871,7 @@ els.settingsForm.addEventListener("submit", async (event) => {
 
 els.loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  const debugCode = els.debugAccessKey.value.replace(/\D/g, "").slice(0, 6);
-  els.debugAccessKey.value = debugCode;
-  await openProfile(els.profileName.value, els.profilePin.value, debugCode);
-});
-
-els.debugAccessKey.addEventListener("input", () => {
-  els.debugAccessKey.value = els.debugAccessKey.value.replace(/\D/g, "").slice(0, 6);
+  await openProfile(els.profileName.value, els.profilePin.value);
 });
 
 els.profilePickerToggle.addEventListener("click", () => {
@@ -2534,11 +2528,7 @@ els.debugRestartServer?.addEventListener("click", async () => {
     if (!restarted) {
       throw new Error("The server did not come back within 15 seconds.");
     }
-    setDebugRestartStatus("Server is back with a new Debug code. Reloading…");
-    if (session) {
-      session.debugKey = "";
-      sessionStorage.setItem(sessionKey, JSON.stringify(session));
-    }
+    setDebugRestartStatus("Server is back. Reloading…");
     window.location.reload();
   } catch (error) {
     els.debugRestartServer.disabled = false;
@@ -2943,6 +2933,164 @@ function setQuotaDetailsOpen(isOpen) {
 els.quotaDetailsSummary.addEventListener("click", (event) => {
   event.preventDefault();
   setQuotaDetailsOpen(!quotaDetailsExpanded);
+});
+
+function setDebugUserManagerStatus(message = "", isError = false) {
+  els.debugUserManagerStatus.textContent = message;
+  els.debugUserManagerStatus.classList.toggle("is-error", isError);
+}
+
+function debugAdminRequest(path, options = {}, code = debugAdminCode) {
+  const headers = {
+    ...(options.headers || {}),
+    "X-Debug-Key": code,
+  };
+  if (options.body) headers["Content-Type"] = "application/json";
+  return fetch(path, { ...options, headers }).then(async (response) => {
+    const payload = await response.json().catch(() => ({}));
+    if (!response.ok) throw new Error(payload.error || "Request failed.");
+    return payload;
+  });
+}
+
+function renderDebugUserManager(users = []) {
+  if (!users.length) {
+    els.debugUserList.innerHTML = '<p class="debug-user-empty">No profiles yet. Create a profile first, then type the server code again.</p>';
+    return;
+  }
+
+  els.debugUserList.innerHTML = users.map((user) => `
+    <div class="debug-user-row" data-debug-user-row="${escapeHtml(user.id)}">
+      <div class="debug-user-main">
+        <span class="debug-user-avatar" aria-hidden="true">
+          <i data-lucide="user-round"></i>
+        </span>
+        <span class="debug-user-copy">
+          <strong>${escapeHtml(user.name)}</strong>
+          <small>${user.debugAccess ? "Permanent Debug access enabled" : "Normal access"}</small>
+        </span>
+      </div>
+      <label class="site-switch-control shrink-0" title="Permanent Debug access for ${escapeHtml(user.name)}">
+        <input class="site-switch-input" type="checkbox" data-debug-user-access="${escapeHtml(user.id)}" ${user.debugAccess ? "checked" : ""} />
+        <span class="site-switch" aria-hidden="true"></span>
+      </label>
+    </div>
+  `).join("");
+  renderIcons();
+}
+
+async function openDebugUserManager(code) {
+  try {
+    const payload = await debugAdminRequest("/api/debug/users", {}, code);
+    debugAdminCode = code;
+    renderDebugUserManager(payload.users || []);
+    setDebugUserManagerStatus("");
+    if (!els.debugUserManagerDialog.open) {
+      els.debugUserManagerDialog.showModal();
+      renderIcons();
+    }
+    requestAnimationFrame(() => els.debugUserManagerClose.focus());
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+function closeDebugUserManager() {
+  debugAdminCode = "";
+  setDebugUserManagerStatus("");
+  if (els.debugUserManagerDialog.open) els.debugUserManagerDialog.close();
+}
+
+function isTextEntryTarget(target) {
+  if (!(target instanceof Element)) return false;
+  return Boolean(target.closest('input, textarea, select, [contenteditable="true"], [contenteditable=""], [role="textbox"]'));
+}
+
+function resetHiddenDebugCode() {
+  hiddenDebugCodeBuffer = "";
+  if (hiddenDebugCodeTimer) clearTimeout(hiddenDebugCodeTimer);
+  hiddenDebugCodeTimer = null;
+}
+
+document.addEventListener("keydown", async (event) => {
+  if (
+    event.defaultPrevented
+    || event.repeat
+    || event.ctrlKey
+    || event.metaKey
+    || event.altKey
+    || isTextEntryTarget(event.target)
+    || document.querySelector("dialog[open]")
+  ) {
+    resetHiddenDebugCode();
+    return;
+  }
+
+  if (!/^\d$/.test(event.key)) {
+    if (event.key.length === 1) resetHiddenDebugCode();
+    return;
+  }
+
+  if (hiddenDebugCodeTimer) clearTimeout(hiddenDebugCodeTimer);
+  hiddenDebugCodeBuffer = (hiddenDebugCodeBuffer + event.key).slice(-6);
+  hiddenDebugCodeTimer = setTimeout(resetHiddenDebugCode, 3500);
+
+  if (hiddenDebugCodeBuffer.length !== 6) return;
+  const candidate = hiddenDebugCodeBuffer;
+  resetHiddenDebugCode();
+  await openDebugUserManager(candidate);
+});
+
+els.debugUserManagerClose.addEventListener("click", closeDebugUserManager);
+
+els.debugUserManagerDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeDebugUserManager();
+});
+
+els.debugUserManagerDialog.addEventListener("click", (event) => {
+  if (event.target !== els.debugUserManagerDialog) return;
+  closeDebugUserManager();
+});
+
+els.debugUserList.addEventListener("change", async (event) => {
+  const input = event.target.closest("[data-debug-user-access]");
+  if (!input) return;
+
+  const userId = input.dataset.debugUserAccess;
+  const enabled = input.checked;
+  input.disabled = true;
+  setDebugUserManagerStatus("Saving…");
+
+  try {
+    const payload = await debugAdminRequest(
+      `/api/debug/users/${encodeURIComponent(userId)}/access`,
+      {
+        method: "PUT",
+        body: JSON.stringify({ enabled }),
+      },
+    );
+    const row = input.closest("[data-debug-user-row]");
+    const subtitle = row?.querySelector(".debug-user-copy small");
+    if (subtitle) {
+      subtitle.textContent = payload.user.debugAccess
+        ? "Permanent Debug access enabled"
+        : "Normal access";
+    }
+    if (currentUser?.id === payload.user.id) {
+      currentUser.debugAccess = payload.user.debugAccess;
+      syncDebugAccess();
+    }
+    setDebugUserManagerStatus(
+      `${payload.user.name} ${payload.user.debugAccess ? "can now use Debug permanently." : "no longer has permanent Debug access."}`,
+    );
+  } catch (error) {
+    input.checked = !enabled;
+    setDebugUserManagerStatus("Could not update access: " + error.message, true);
+  } finally {
+    input.disabled = false;
+  }
 });
 
 els.headerMenuToggle.addEventListener("click", () => {
