@@ -1394,6 +1394,306 @@ nav[role="tablist"].glass {
   }
 }
 
+.background-upload-dialog {
+  background: transparent;
+  border: 0;
+  color: var(--foreground);
+  margin: auto;
+  max-width: 34rem;
+  padding: 1rem;
+  width: calc(100% - 1.5rem);
+}
+
+.background-upload-dialog:focus {
+  outline: none;
+}
+
+.background-upload-dialog::backdrop {
+  background: rgba(7, 5, 9, 0.68);
+  backdrop-filter: blur(6px);
+}
+
+.background-upload-card {
+  border-radius: 20px;
+  box-sizing: border-box;
+  padding: 1.15rem;
+  width: 100%;
+}
+
+.background-upload-dialog[open] .background-upload-card {
+  animation: confirm-dialog-in 0.22s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+.background-upload-header,
+.background-upload-heading {
+  align-items: flex-start;
+  display: flex;
+}
+
+.background-upload-header {
+  gap: 0.9rem;
+  justify-content: space-between;
+}
+
+.background-upload-heading {
+  gap: 0.8rem;
+  min-width: 0;
+}
+
+.background-upload-heading-icon,
+.background-dropzone-icon,
+.background-upload-preview-icon {
+  align-items: center;
+  background: var(--pink-soft);
+  border: 1px solid var(--pink-ring);
+  color: var(--primary);
+  display: inline-flex;
+  flex-shrink: 0;
+  justify-content: center;
+}
+
+.background-upload-heading-icon {
+  border-radius: 12px;
+  height: 42px;
+  width: 42px;
+}
+
+.background-upload-heading-icon svg,
+.background-upload-close svg,
+.background-dropzone-icon svg {
+  height: 20px;
+  width: 20px;
+}
+
+.background-upload-close {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--glass-border);
+  border-radius: 11px;
+  color: var(--muted);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 38px;
+  justify-content: center;
+  min-height: 38px;
+  width: 38px;
+}
+
+.background-upload-close:hover {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-border-hi);
+  color: var(--foreground);
+}
+
+.background-dropzone {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px dashed var(--glass-border-hi);
+  border-radius: 16px;
+  display: grid;
+  gap: 0.85rem;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  padding: 1rem;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+}
+
+.background-dropzone.is-dragover {
+  background: var(--pink-soft);
+  border-color: var(--primary);
+  transform: scale(1.01);
+}
+
+.background-dropzone-icon {
+  border-radius: 11px;
+  height: 40px;
+  width: 40px;
+}
+
+.background-dropzone-copy {
+  display: grid;
+  gap: 0.2rem;
+  min-width: 0;
+}
+
+.background-dropzone-copy strong {
+  font-size: 0.9rem;
+  font-weight: 700;
+}
+
+.background-dropzone-copy span {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 600;
+  line-height: 1.35;
+}
+
+.background-choose-file,
+.background-upload-button {
+  align-items: center;
+  border-radius: 12px;
+  display: inline-flex;
+  font-size: 0.82rem;
+  font-weight: 700;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 42px;
+  padding: 0.6rem 0.8rem;
+  white-space: nowrap;
+}
+
+.background-choose-file {
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  color: var(--control-text);
+}
+
+.background-choose-file:hover,
+.background-upload-apply:hover:not(:disabled) {
+  background: var(--control-hover-bg);
+  border-color: var(--control-hover-border);
+  color: var(--control-hover-text);
+}
+
+.background-choose-file svg,
+.background-upload-button svg {
+  height: 17px;
+  width: 17px;
+}
+
+.background-paste-hint {
+  align-items: flex-start;
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--muted);
+  display: flex;
+  font-size: 0.72rem;
+  font-weight: 600;
+  gap: 0.55rem;
+  line-height: 1.4;
+  padding: 0.7rem 0.75rem;
+}
+
+.background-paste-hint svg {
+  color: var(--primary);
+  flex-shrink: 0;
+  height: 17px;
+  margin-top: 0.05rem;
+  width: 17px;
+}
+
+.background-paste-hint strong {
+  color: var(--foreground);
+}
+
+.background-upload-preview {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.background-upload-preview > img {
+  aspect-ratio: 16 / 7;
+  display: block;
+  object-fit: cover;
+  width: 100%;
+}
+
+.background-upload-preview-meta {
+  align-items: center;
+  display: flex;
+  gap: 0.65rem;
+  padding: 0.7rem;
+}
+
+.background-upload-preview-icon {
+  border-radius: 8px;
+  height: 30px;
+  width: 30px;
+}
+
+.background-upload-preview-icon svg {
+  height: 15px;
+  width: 15px;
+}
+
+.background-upload-preview-meta > div {
+  display: grid;
+  gap: 0.05rem;
+}
+
+.background-upload-preview-meta strong {
+  font-size: 0.8rem;
+  font-weight: 700;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.background-upload-preview-meta span {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.background-upload-status {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  min-height: 1rem;
+}
+
+.background-upload-status.is-error {
+  color: var(--danger);
+}
+
+.background-upload-actions {
+  display: grid;
+  gap: 0.6rem;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+}
+
+.background-upload-button {
+  background: rgba(255, 255, 255, 0.07);
+  border: 1px solid var(--glass-border);
+  color: var(--foreground);
+}
+
+.background-upload-button:hover:not(:disabled) {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-border-hi);
+}
+
+.background-upload-apply {
+  background: var(--control-bg);
+  border-color: var(--control-border);
+  color: var(--control-text);
+}
+
+.background-upload-button:disabled {
+  cursor: default;
+  opacity: 0.38;
+}
+
+@media (max-width: 639px) {
+  .background-dropzone {
+    align-items: stretch;
+    grid-template-columns: auto minmax(0, 1fr);
+  }
+
+  .background-choose-file {
+    grid-column: 1 / -1;
+    width: 100%;
+  }
+}
+
+@media (max-width: 420px) {
+  .background-upload-actions {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .confirm-dialog {
   background: transparent;
   border: 0;
@@ -1796,6 +2096,7 @@ nav[role="tablist"].glass {
 }
 
 @media (prefers-reduced-motion: reduce) {
+  .background-upload-dialog[open] .background-upload-card,
   .confirm-dialog[open] .confirm-dialog-card {
     animation: none;
   }
