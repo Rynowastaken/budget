@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-61" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-64" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -66,6 +66,29 @@
             <span class="remember-switch" aria-hidden="true"></span>
           </span>
         </label>
+
+        <details id="debugLoginAccess" class="auth-debug-access mt-3">
+          <summary class="auth-debug-summary focus-ring">
+            <span class="auth-debug-summary-main">
+              <span class="auth-debug-icon" aria-hidden="true">
+                <i data-lucide="bug"></i>
+              </span>
+              <span>
+                <strong>Debug access</strong>
+                <small>For authorized users only</small>
+              </span>
+            </span>
+            <i class="auth-debug-chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+          </summary>
+          <div class="auth-debug-body">
+            <label class="block">
+              <span class="text-sm font-semibold" style="color: var(--muted)">Access key</span>
+              <input id="debugAccessKey" type="password" autocomplete="off" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold" />
+            </label>
+            <p class="mt-2 text-xs font-medium" style="color: var(--faint)">Leave this blank for a normal login. The key is only kept for the current browser session.</p>
+          </div>
+        </details>
+
         <p id="authMessage" class="mt-3 min-h-5 text-sm font-semibold" style="color: var(--danger)"></p>
         <div class="mt-3 flex justify-end">
           <button class="focus-ring icon-control rounded-lg text-white shadow-sm" style="background: var(--primary)" aria-label="Open profile" title="Open profile">
@@ -711,6 +734,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260922-63"></script>
+    <script src="/assets/js/app.js?v=20260922-64"></script>
   </body>
 </html>
