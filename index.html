@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-44" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-45" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -166,13 +166,10 @@
                     <span id="totalAmountLabel" class="text-sm font-semibold" style="color: var(--muted)">Total amount</span>
                     <input id="totalAmount" type="number" min="0" step="0.01" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold tabular-nums" />
                   </label>
-                  <label class="block">
+                  <div class="block">
                     <span class="text-sm font-semibold" style="color: var(--muted)">Currency</span>
-                    <span class="currency-select-control mt-2">
-                      <span class="currency-select-icon" aria-hidden="true">
-                        <i data-lucide="badge-dollar-sign"></i>
-                      </span>
-                      <select id="currencyCode" class="focus-ring text-base font-semibold" aria-label="Currency">
+                    <div id="currencyPicker" class="currency-picker relative mt-2">
+                      <select id="currencyCode" class="sr-only" tabindex="-1" aria-hidden="true">
                         <option value="USD">USD</option>
                         <option value="TWD">TWD</option>
                         <option value="JPY">JPY</option>
@@ -186,11 +183,28 @@
                         <option value="SGD">SGD</option>
                         <option value="THB">THB</option>
                       </select>
-                      <span class="currency-select-chevron" aria-hidden="true">
-                        <i data-lucide="chevron-down"></i>
-                      </span>
-                    </span>
-                  </label>
+                      <button id="currencyToggle" class="currency-toggle focus-ring" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="currencyMenu">
+                        <span id="currencyValue" class="currency-value">USD</span>
+                        <span class="currency-select-chevron" aria-hidden="true">
+                          <i data-lucide="chevron-down"></i>
+                        </span>
+                      </button>
+                      <div id="currencyMenu" class="currency-menu hidden" role="listbox" aria-label="Currency">
+                        <button class="currency-option" type="button" role="option" data-currency="USD"><span><strong>USD</strong><small>US Dollar</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="TWD"><span><strong>TWD</strong><small>New Taiwan Dollar</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="JPY"><span><strong>JPY</strong><small>Japanese Yen</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="EUR"><span><strong>EUR</strong><small>Euro</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="GBP"><span><strong>GBP</strong><small>Pound Sterling</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="CAD"><span><strong>CAD</strong><small>Canadian Dollar</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="AUD"><span><strong>AUD</strong><small>Australian Dollar</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="CNY"><span><strong>CNY</strong><small>Chinese Yuan</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="HKD"><span><strong>HKD</strong><small>Hong Kong Dollar</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="KRW"><span><strong>KRW</strong><small>South Korean Won</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="SGD"><span><strong>SGD</strong><small>Singapore Dollar</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                        <button class="currency-option" type="button" role="option" data-currency="THB"><span><strong>THB</strong><small>Thai Baht</small></span><i data-lucide="check" aria-hidden="true"></i></button>
+                      </div>
+                    </div>
+                  </div>
                 </div>
                 <label class="mt-4 flex cursor-pointer items-center justify-between gap-3 rounded-lg border border-black/10 bg-white/65 p-3">
                   <span>
@@ -508,6 +522,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260922-41"></script>
+    <script src="/assets/js/app.js?v=20260922-45"></script>
   </body>
 </html>
