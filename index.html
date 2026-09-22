@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-50" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-51" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -79,52 +79,33 @@
               <i data-lucide="menu" aria-hidden="true"></i>
             </button>
             <div id="headerMenuPanel" class="header-menu-panel" role="menu" aria-label="Profile menu" aria-hidden="true">
-              <div class="header-menu-section-label">Appearance</div>
-              <button id="openSettings" class="header-menu-item focus-ring" type="button" role="menuitem">
-                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="settings"></i></span>
-                <span class="header-menu-item-copy">
-                  <strong>Settings</strong>
-                  <small>Theme and debug options</small>
-                </span>
-              </button>
-              <button id="uploadBackground" class="header-menu-item focus-ring" type="button" role="menuitem">
-                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="image-up"></i></span>
-                <span class="header-menu-item-copy">
-                  <strong>Upload background</strong>
-                  <small>Choose a new backdrop</small>
-                </span>
-              </button>
-              <button id="clearBackground" class="header-menu-item focus-ring" type="button" role="menuitem">
-                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="image-minus"></i></span>
-                <span class="header-menu-item-copy">
-                  <strong>Clear background</strong>
-                  <small>Return to the default look</small>
-                </span>
-              </button>
-              <div class="header-menu-divider"></div>
-              <div class="header-menu-section-label">Profile</div>
-              <button id="resetData" class="header-menu-item header-menu-item-danger focus-ring" type="button" role="menuitem">
-                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="rotate-ccw"></i></span>
-                <span class="header-menu-item-copy">
-                  <strong>Reset profile data</strong>
-                  <small>Clear budget, expenses, and theme</small>
-                </span>
-              </button>
-              <button id="switchProfile" class="header-menu-item header-menu-item-danger focus-ring" type="button" role="menuitem">
-                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="log-out"></i></span>
-                <span class="header-menu-item-copy">
-                  <strong>Log out</strong>
-                  <small>Return to profile selection</small>
-                </span>
-              </button>
-              <button id="changeServer" class="android-only header-menu-item focus-ring" type="button" role="menuitem">
-                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="server-cog"></i></span>
-                <span class="header-menu-item-copy">
-                  <strong>Change server</strong>
-                  <small>Use another Budget server</small>
-                </span>
-              </button>
-            </div>
+              <div class="header-menu-grid">
+                <button id="openSettings" class="header-menu-tile focus-ring" type="button" role="menuitem" aria-label="Settings">
+                  <i data-lucide="settings" aria-hidden="true"></i>
+                  <span>Settings</span>
+                </button>
+                <button id="uploadBackground" class="header-menu-tile focus-ring" type="button" role="menuitem" aria-label="Upload background">
+                  <i data-lucide="image-up" aria-hidden="true"></i>
+                  <span>Upload</span>
+                </button>
+                <button id="clearBackground" class="header-menu-tile focus-ring" type="button" role="menuitem" aria-label="Clear background">
+                  <i data-lucide="image-minus" aria-hidden="true"></i>
+                  <span>Clear</span>
+                </button>
+                <button id="resetData" class="header-menu-tile header-menu-tile-danger focus-ring" type="button" role="menuitem" aria-label="Reset profile data">
+                  <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+                  <span>Reset</span>
+                </button>
+                <button id="switchProfile" class="header-menu-tile header-menu-tile-danger focus-ring" type="button" role="menuitem" aria-label="Log out">
+                  <i data-lucide="log-out" aria-hidden="true"></i>
+                  <span>Log out</span>
+                </button>
+                <button id="changeServer" class="android-only header-menu-tile focus-ring" type="button" role="menuitem" aria-label="Change server">
+                  <i data-lucide="server-cog" aria-hidden="true"></i>
+                  <span>Server</span>
+                </button>
+              </div>
+            </div>            </div>
           </div>
         </div>
       </header>
