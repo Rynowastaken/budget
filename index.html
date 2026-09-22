@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-53" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-54" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -541,6 +541,29 @@
       </section>
     </dialog>
 
+    <dialog id="clearBackgroundConfirmDialog" class="confirm-dialog" aria-labelledby="clearBackgroundConfirmTitle" aria-describedby="clearBackgroundConfirmDescription">
+      <section class="confirm-dialog-card glass">
+        <div class="confirm-dialog-icon confirm-dialog-icon-primary" aria-hidden="true">
+          <i data-lucide="image-minus"></i>
+        </div>
+        <div class="confirm-dialog-copy">
+          <h2 id="clearBackgroundConfirmTitle" class="text-xl font-semibold">Clear background?</h2>
+          <p id="clearBackgroundConfirmDescription" class="mt-2 text-sm font-medium" style="color: var(--muted)">
+            This removes your uploaded background and returns the app to its default background and palette. Your budget, expenses, and profile data will not be changed.
+          </p>
+        </div>
+        <div class="confirm-dialog-actions">
+          <button id="clearBackgroundConfirmCancel" class="confirm-dialog-button focus-ring" type="button">
+            Cancel
+          </button>
+          <button id="clearBackgroundConfirmSubmit" class="confirm-dialog-button confirm-dialog-primary focus-ring" type="button">
+            <i data-lucide="image-minus" aria-hidden="true"></i>
+            <span>Clear background</span>
+          </button>
+        </div>
+      </section>
+    </dialog>
+
     <dialog id="resetConfirmDialog" class="confirm-dialog" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmDescription">
       <section class="confirm-dialog-card glass">
         <div class="confirm-dialog-icon" aria-hidden="true">
@@ -564,6 +587,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260922-53"></script>
+    <script src="/assets/js/app.js?v=20260922-54"></script>
   </body>
 </html>
