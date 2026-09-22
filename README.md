@@ -147,13 +147,13 @@ There is no frontend build step. Edit, save, and refresh.
 
 ### Debug access
 
-Debug tools are hidden by default. To allow specific profiles, start the server with a comma-separated list of profile names:
+Debug tools are hidden during a normal login. Set a server-side access key when starting Budget:
 
 ```bash
-BUDGET_DEBUG_USERS=ryno,alice node server.js
+BUDGET_DEBUG_KEY=your-secret-key node server.js
 ```
 
-Only those profiles can see Debug settings or call the server restart endpoints.
+On the login screen, expand **Debug access** and enter that key. Debug permissions last only for the current browser session, even when **Remember me** is enabled.
 
 Quick syntax check:
 
