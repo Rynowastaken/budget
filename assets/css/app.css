@@ -878,39 +878,23 @@ label:has(#rolloverEnabled) {
   justify-content: space-between;
 }
 
-.activity-heading-actions {
-  align-items: center;
-  display: flex;
-  gap: 0.65rem;
-}
-
 .activity-selected-meta {
+  align-items: center;
   color: var(--muted);
+  display: flex;
+  flex-wrap: wrap;
   font-size: 0.75rem;
   font-weight: 600;
+  gap: 0.35rem;
   margin-top: 0.2rem;
 }
 
-.activity-selected-total {
-  align-items: baseline;
-  background: rgba(255, 255, 255, 0.055);
-  border: 1px solid var(--glass-border);
-  border-radius: 12px;
-  display: flex;
-  gap: 0.55rem;
-  min-height: 38px;
-  padding: 0.45rem 0.7rem;
+.activity-meta-divider {
+  color: var(--faint);
 }
 
-.activity-selected-total span {
-  color: var(--muted);
-  font-size: 0.7rem;
-  font-weight: 700;
-}
-
-.activity-selected-total strong {
+.activity-meta-spent strong {
   color: var(--foreground);
-  font-size: 0.95rem;
   font-weight: 750;
 }
 
@@ -1038,23 +1022,11 @@ label:has(#rolloverEnabled) {
 
 @media (max-width: 639px) {
   .activity-heading-row {
-    align-items: flex-start;
+    align-items: center;
   }
 
-  .activity-heading-actions {
-    gap: 0.5rem;
-  }
-
-  .activity-selected-total {
-    align-items: flex-end;
-    flex-direction: column;
-    gap: 0.05rem;
-    min-height: 36px;
-    padding: 0.4rem 0.6rem;
-  }
-
-  .activity-selected-total strong {
-    font-size: 0.9rem;
+  .activity-selected-meta {
+    white-space: nowrap;
   }
 
   .activity-heatmap-shell {
