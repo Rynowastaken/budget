@@ -1314,7 +1314,8 @@ label:has(#rolloverEnabled) {
     border-radius: 8px;
     overflow-x: auto;
     overflow-y: hidden;
-    overscroll-behavior: contain;
+    overscroll-behavior-x: contain;
+    overscroll-behavior-y: auto;
     padding: 0.15rem 0 0.3rem;
     scrollbar-color: var(--primary) rgba(255, 255, 255, 0.06);
     scrollbar-width: thin;
