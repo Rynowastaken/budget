@@ -147,13 +147,15 @@ There is no frontend build step. Edit, save, and refresh.
 
 ### Debug access
 
-Debug tools are hidden during a normal login. Set a server-side access key when starting Budget:
+Every time Budget starts, the server generates a new **6-digit Debug access code** and prints it in the terminal:
 
-```bash
-BUDGET_DEBUG_KEY=your-secret-key node server.js
+```text
+Debug access code: 123456
 ```
 
-On the login screen, expand **Debug access** and enter that key. Debug permissions last only for the current browser session, even when **Remember me** is enabled.
+On the login screen, expand **Debug access** and enter the current code. Leave it blank for a normal login.
+
+The code changes whenever the server restarts and is only kept for the current browser session, even when **Remember me** is enabled.
 
 Quick syntax check:
 
