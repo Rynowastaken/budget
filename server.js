@@ -16,12 +16,7 @@ const imageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avi
 const staticCache = new Map();
 const serverInstanceId = crypto.randomUUID?.() || crypto.randomBytes(16).toString("hex");
 const serverStartedAt = Date.now();
-const debugUserIds = new Set(
-  String(process.env.BUDGET_DEBUG_USERS || "")
-    .split(",")
-    .map((value) => normalizeProfileName(value))
-    .filter(Boolean),
-);
+const debugAccessKey = String(process.env.BUDGET_DEBUG_KEY || "");
 let dbCache = null;
 let restartScheduled = false;
 
@@ -87,12 +82,19 @@ function publicUser(user) {
   return { id: user.id, name: user.name };
 }
 
-function canUseDebug(user) {
-  return Boolean(user?.id && debugUserIds.has(normalizeProfileName(user.id)));
+function debugKeyMatches(value) {
+  if (!debugAccessKey || !value) return false;
+  const expected = crypto.createHash("sha256").update(debugAccessKey).digest();
+  const received = crypto.createHash("sha256").update(String(value)).digest();
+  return crypto.timingSafeEqual(expected, received);
 }
 
-function authenticatedUser(user) {
-  return { ...publicUser(user), debugAccess: canUseDebug(user) };
+function requestHasDebugAccess(req) {
+  return debugKeyMatches(req.headers["x-debug-key"]);
+}
+
+function authenticatedUser(user, debugAccess = false) {
+  return { ...publicUser(user), debugAccess: Boolean(debugAccess) };
 }
 
 function sendJson(res, status, body, options = {}) {
@@ -232,6 +234,11 @@ async function handleApi(req, res) {
 
       const name = String(body.name || "").trim();
       const pin = String(body.pin || "");
+      const requestedDebugKey = String(body.debugKey || "");
+      if (requestedDebugKey && !debugKeyMatches(requestedDebugKey)) {
+        sendError(res, 403, debugAccessKey ? "Wrong debug access key." : "Debug access is not configured on this server.");
+        return;
+      }
       const id = normalizeProfileName(name);
       if (!id) {
         sendError(res, 400, "Enter a profile name.");
@@ -253,7 +260,7 @@ async function handleApi(req, res) {
       }
 
       const state = stateForUser(db, id);
-      sendJson(res, 200, { user: authenticatedUser(user), state }, { cacheControl: "private, no-cache", etag: jsonEtag(state) });
+      sendJson(res, 200, { user: authenticatedUser(user, debugKeyMatches(requestedDebugKey)), state }, { cacheControl: "private, no-cache", etag: jsonEtag(state) });
       return;
     }
 
@@ -263,7 +270,7 @@ async function handleApi(req, res) {
         sendError(res, 401, "Login required.");
         return;
       }
-      if (!canUseDebug(user)) {
+      if (!requestHasDebugAccess(req)) {
         sendError(res, 403, "Debug access is not enabled for this profile.");
         return;
       }
@@ -281,7 +288,7 @@ async function handleApi(req, res) {
         sendError(res, 401, "Login required.");
         return;
       }
-      if (!canUseDebug(user)) {
+      if (!requestHasDebugAccess(req)) {
         sendError(res, 403, "Debug access is not enabled for this profile.");
         return;
       }
@@ -322,7 +329,7 @@ async function handleApi(req, res) {
         sendNotModified(res, cacheHeaders);
         return;
       }
-      sendJson(res, 200, { user: authenticatedUser(user), state }, { cacheControl: "private, no-cache", etag });
+      sendJson(res, 200, { user: authenticatedUser(user, requestHasDebugAccess(req)), state }, { cacheControl: "private, no-cache", etag });
       return;
     }
 
