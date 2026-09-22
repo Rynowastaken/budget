@@ -155,6 +155,7 @@ const els = {
   themeColorfulnessValue: document.getElementById("themeColorfulnessValue"),
   themeBrightness: document.getElementById("themeBrightness"),
   themeBrightnessValue: document.getElementById("themeBrightnessValue"),
+  debugSettings: document.getElementById("debugSettings"),
   debugDatePicker: document.getElementById("debugDatePicker"),
   debugDateOffsetLabel: document.getElementById("debugDateOffsetLabel"),
   debugPrevDay: document.getElementById("debugPrevDay"),
@@ -331,8 +332,17 @@ async function loadStateFromServer() {
   applyServerState(payload);
 }
 
+function syncDebugAccess() {
+  const hasDebugAccess = Boolean(currentUser?.debugAccess);
+  els.debugSettings?.classList.toggle("hidden", !hasDebugAccess);
+  if (!hasDebugAccess && debugDateOffset !== 0) {
+    debugDateOffset = 0;
+  }
+}
+
 function applyServerState(payload) {
   currentUser = payload.user;
+  syncDebugAccess();
   state = { ...defaults, ...payload.state, startDate: payload.state?.startDate || todayISO() };
   state.splitTotalIntoDailyQuota = Boolean(state.splitTotalIntoDailyQuota);
   state.splitBudgetDays = normalizeSplitBudgetDays(state.splitBudgetDays);
@@ -457,6 +467,7 @@ function getActiveUser() {
 function showAuth(message = "", clearSaved = true) {
   const previousSession = session;
   currentUser = null;
+  syncDebugAccess();
   state = { ...defaults };
   lastSavedPayload = "";
   stateEtag = "";
@@ -2408,7 +2419,11 @@ function openSettingsDialog() {
     pendingThemeColorfulness,
     pendingThemeBrightness,
   ));
-  syncDebugDateControls();
+  if (currentUser?.debugAccess) {
+    debugDateOffset = loadDebugDateOffset();
+    syncDebugDateControls();
+  }
+  syncDebugAccess();
   if (!els.settingsDialog.open) els.settingsDialog.showModal();
   animateSettingsDialog(true);
 }
