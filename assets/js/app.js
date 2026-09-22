@@ -3080,7 +3080,14 @@ els.debugUserList.addEventListener("change", async (event) => {
     }
     if (currentUser?.id === payload.user.id) {
       currentUser.debugAccess = payload.user.debugAccess;
-      syncDebugAccess();
+      const debugOffsetChanged = syncDebugAccess();
+      if (debugOffsetChanged) {
+        selectedActivityDate = todayISO();
+        visibleActivityMonth = monthStart(selectedActivityDate);
+        selectedExpenseDate = selectedActivityDate;
+        visibleExpenseMonth = monthStart(selectedExpenseDate);
+        render();
+      }
     }
     setDebugUserManagerStatus(
       `${payload.user.name} ${payload.user.debugAccess ? "can now use Debug permanently." : "no longer has permanent Debug access."}`,
