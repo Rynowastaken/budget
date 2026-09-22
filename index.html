@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-55" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-56" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -30,12 +30,24 @@
             <i data-lucide="server-cog" aria-hidden="true"></i>
           </button>
         </div>
-        <label class="mt-5 block">
+        <div class="profile-picker-field mt-5">
           <span class="text-sm font-semibold" style="color: var(--muted)">Saved profiles</span>
-          <select id="profileSelect" class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold">
-            <option value="">New profile</option>
-          </select>
-        </label>
+          <div id="profilePicker" class="profile-picker relative mt-2">
+            <select id="profileSelect" class="sr-only" tabindex="-1" aria-hidden="true">
+              <option value="">New profile</option>
+            </select>
+            <button id="profilePickerToggle" class="profile-picker-toggle focus-ring" type="button" aria-haspopup="listbox" aria-expanded="false" aria-controls="profilePickerMenu">
+              <span class="profile-picker-value">
+                <span class="profile-picker-value-icon" aria-hidden="true">
+                  <i data-lucide="user-round-plus"></i>
+                </span>
+                <span id="profilePickerValue">New profile</span>
+              </span>
+              <i class="profile-picker-chevron" data-lucide="chevron-down" aria-hidden="true"></i>
+            </button>
+            <div id="profilePickerMenu" class="profile-picker-menu hidden" role="listbox" aria-label="Saved profiles"></div>
+          </div>
+        </div>
         <label class="mt-4 block">
           <span class="text-sm font-semibold" style="color: var(--muted)">Profile name</span>
           <input id="profileName" type="text" maxlength="32" autocomplete="username" required class="focus-ring mt-2 w-full rounded-lg border border-black/10 bg-white/80 px-3 py-2 text-base font-semibold" />
@@ -652,6 +664,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260922-55"></script>
+    <script src="/assets/js/app.js?v=20260922-56"></script>
   </body>
 </html>
