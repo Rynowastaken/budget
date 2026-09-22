@@ -73,6 +73,7 @@ const els = {
   quotaDetails: document.getElementById("quotaDetails"),
   quotaDetailsSummary: document.getElementById("quotaDetailsSummary"),
   quotaDetailsContent: document.getElementById("quotaDetailsContent"),
+  quotaAdvancedStatus: document.getElementById("quotaAdvancedStatus"),
   expenseSummary: document.getElementById("expenseSummary"),
   dailyQuota: document.getElementById("dailyQuota"),
   todayQuota: document.getElementById("todayQuota"),
@@ -1020,6 +1021,15 @@ function render() {
   els.budgetResetEnabled.checked = Boolean(state.budgetResetEnabled);
   els.budgetResetDay.value = normalizeBudgetResetDay(state.budgetResetDay);
   els.resetRolloverOnBudgetReset.checked = Boolean(state.resetRolloverOnBudgetReset);
+  const advancedEnabledCount = [
+    state.splitTotalIntoDailyQuota,
+    state.budgetResetEnabled,
+    state.resetRolloverOnBudgetReset,
+  ].filter(Boolean).length;
+  if (els.quotaAdvancedStatus) {
+    els.quotaAdvancedStatus.textContent = advancedEnabledCount ? `${advancedEnabledCount} active` : "Optional";
+    els.quotaAdvancedStatus.classList.toggle("is-active", advancedEnabledCount > 0);
+  }
   els.budgetTopUpSummary.textContent = `Added this cycle: ${money(metrics.addedBudget)}`;
   syncBudgetResetEditor();
   syncSplitBudgetEditor(metrics);
