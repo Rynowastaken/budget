@@ -105,6 +105,9 @@ const els = {
   overviewPanel: document.getElementById("overviewPanel"),
   activityPanel: document.getElementById("activityPanel"),
   activityLayout: document.getElementById("activityLayout"),
+  activitySelectedMeta: document.getElementById("activitySelectedMeta"),
+  activitySelectedTotal: document.getElementById("activitySelectedTotal"),
+  activityExpenseCount: document.getElementById("activityExpenseCount"),
   expenseForm: document.getElementById("expenseForm"),
   expenseFormTitle: document.getElementById("expenseFormTitle"),
   expenseSubmit: document.getElementById("expenseSubmit"),
@@ -1103,6 +1106,13 @@ function render() {
 
   const visibleExpenses = expensesOn(selectedActivityDate)
     .sort((a, b) => Number(b.createdAt || 0) - Number(a.createdAt || 0));
+  const selectedDaySpent = visibleExpenses.reduce((sum, expense) => sum + Number(expense.amount || 0), 0);
+  const selectedDayCount = visibleExpenses.length;
+  els.activitySelectedTotal.textContent = money(selectedDaySpent);
+  els.activitySelectedMeta.textContent = selectedActivityDate === today
+    ? "Today"
+    : formatDateLabel(selectedActivityDate);
+  els.activityExpenseCount.textContent = `${selectedDayCount} ${selectedDayCount === 1 ? "entry" : "entries"}`;
   els.emptyState.textContent = selectedActivityDate === today
     ? "No expenses today."
     : `No expenses on ${selectedActivityDate}.`;
