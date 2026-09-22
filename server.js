@@ -89,12 +89,16 @@ function debugKeyMatches(value) {
   return crypto.timingSafeEqual(expected, received);
 }
 
-function requestHasDebugAccess(req) {
-  return debugKeyMatches(req.headers["x-debug-key"]);
+function hasPermanentDebugAccess(user) {
+  return Boolean(user?.debugAccess);
 }
 
-function authenticatedUser(user, debugAccess = false) {
-  return { ...publicUser(user), debugAccess: Boolean(debugAccess) };
+function requestHasDebugAccess(req, user) {
+  return hasPermanentDebugAccess(user) || debugKeyMatches(req.headers["x-debug-key"]);
+}
+
+function authenticatedUser(user) {
+  return { ...publicUser(user), debugAccess: hasPermanentDebugAccess(user) };
 }
 
 function sendJson(res, status, body, options = {}) {
@@ -242,11 +246,6 @@ async function handleApi(req, res) {
 
       const name = String(body.name || "").trim();
       const pin = String(body.pin || "");
-      const requestedDebugKey = String(body.debugKey || "");
-      if (requestedDebugKey && !debugKeyMatches(requestedDebugKey)) {
-        sendError(res, 403, "Wrong debug access code.");
-        return;
-      }
       const id = normalizeProfileName(name);
       if (!id) {
         sendError(res, 400, "Enter a profile name.");
@@ -268,7 +267,45 @@ async function handleApi(req, res) {
       }
 
       const state = stateForUser(db, id);
-      sendJson(res, 200, { user: authenticatedUser(user, debugKeyMatches(requestedDebugKey)), state }, { cacheControl: "private, no-cache", etag: jsonEtag(state) });
+      sendJson(res, 200, { user: authenticatedUser(user), state }, { cacheControl: "private, no-cache", etag: jsonEtag(state) });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/debug/users") {
+      if (!debugKeyMatches(req.headers["x-debug-key"])) {
+        sendError(res, 403, "Wrong debug access code.");
+        return;
+      }
+      sendJson(res, 200, {
+        users: db.users.map((user) => ({
+          ...publicUser(user),
+          debugAccess: hasPermanentDebugAccess(user),
+        })),
+      });
+      return;
+    }
+
+    if (req.method === "PUT" && url.pathname.startsWith("/api/debug/users/") && url.pathname.endsWith("/access")) {
+      if (!debugKeyMatches(req.headers["x-debug-key"])) {
+        sendError(res, 403, "Wrong debug access code.");
+        return;
+      }
+      const encodedId = url.pathname.slice("/api/debug/users/".length, -"/access".length);
+      const id = normalizeProfileName(decodeURIComponent(encodedId));
+      const user = db.users.find((entry) => entry.id === id);
+      if (!user) {
+        sendError(res, 404, "Profile not found.");
+        return;
+      }
+      const body = await parseBody(req);
+      user.debugAccess = Boolean(body.enabled);
+      writeDb(db);
+      sendJson(res, 200, {
+        user: {
+          ...publicUser(user),
+          debugAccess: hasPermanentDebugAccess(user),
+        },
+      });
       return;
     }
 
@@ -278,7 +315,7 @@ async function handleApi(req, res) {
         sendError(res, 401, "Login required.");
         return;
       }
-      if (!requestHasDebugAccess(req)) {
+      if (!requestHasDebugAccess(req, user)) {
         sendError(res, 403, "Debug access is not enabled for this profile.");
         return;
       }
@@ -296,7 +333,7 @@ async function handleApi(req, res) {
         sendError(res, 401, "Login required.");
         return;
       }
-      if (!requestHasDebugAccess(req)) {
+      if (!requestHasDebugAccess(req, user)) {
         sendError(res, 403, "Debug access is not enabled for this profile.");
         return;
       }
@@ -337,7 +374,7 @@ async function handleApi(req, res) {
         sendNotModified(res, cacheHeaders);
         return;
       }
-      sendJson(res, 200, { user: authenticatedUser(user, requestHasDebugAccess(req)), state }, { cacheControl: "private, no-cache", etag });
+      sendJson(res, 200, { user: authenticatedUser(user), state }, { cacheControl: "private, no-cache", etag });
       return;
     }
 
