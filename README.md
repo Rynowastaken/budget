@@ -7,7 +7,7 @@ A simple, self-hosted budget tracker for daily spending.
 **No npm install. No build step. Just Node.js and a browser.**
 
 > [!NOTE]
-> This project is mostly vibe coded with GPT-5.5 and GPT-5.6 Sol. Support and bug fixes are not guaranteed.
+> This project is entirely vibe coded with GPT-5.5 and GPT-5.6 Sol. Support and bug fixes are not guaranteed.
 
 ## 👀 Preview
 
