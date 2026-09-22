@@ -145,6 +145,16 @@ Main files:
 
 There is no frontend build step. Edit, save, and refresh.
 
+### Debug access
+
+Debug tools are hidden by default. To allow specific profiles, start the server with a comma-separated list of profile names:
+
+```bash
+BUDGET_DEBUG_USERS=ryno,alice node server.js
+```
+
+Only those profiles can see Debug settings or call the server restart endpoints.
+
 Quick syntax check:
 
 ```bash
