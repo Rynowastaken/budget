@@ -202,6 +202,14 @@ async function handleApi(req, res) {
   res.acceptsGzip = /\bgzip\b/.test(req.headers["accept-encoding"] || "");
 
   try {
+    if (req.method === "GET" && url.pathname === "/api/server/status") {
+      sendJson(res, 200, {
+        instanceId: serverInstanceId,
+        startedAt: serverStartedAt,
+      });
+      return;
+    }
+
     if (req.method === "GET" && url.pathname === "/api/assets") {
       const body = {
         assets: {
