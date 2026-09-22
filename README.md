@@ -2,98 +2,176 @@
 
 ![Budget logo](logo-small.webp)
 
+A small, self-hosted budget tracker for keeping an eye on daily spending.
+
+It runs with **Node.js**, uses plain HTML/CSS/JavaScript, and does not need an npm install or build step.
+
 > [!IMPORTANT]
->This project is entirely vibe coded by GPT 5.5 and GPT 5.6 Sol.
->I will not provide any support or bug fixes unless I also find it annoying.
+> This project is mostly vibe coded with GPT-5.5 and GPT-5.6 Sol.
+> Support and bug fixes are not guaranteed.
 
-A lightweight, self-hosted budget and expense tracker built with vanilla HTML, CSS, JavaScript, and Node.js. It has no npm dependencies and stores profile data in a local JSON file.
+## What it can do
 
-## Features
-
-- Daily quota, today-specific quota, total budget, and automatic rollover
-- Multiple currencies with locale-aware formatting
-- Multiple local profiles protected by a PIN
+- Track a daily quota and total budget
 - Add, edit, and delete expenses
-- Reusable expense suggestions that preserve fields you have already filled in
-- Activity view with date filtering and a 30-week contribution-style heatmap
-- Future-date selection prevention
-- Custom background uploads with automatic color-palette extraction
-- Responsive glass-style interface for desktop and mobile
-- Optional Android WebView client with saved server profiles
-
-### Mobile gestures
-
-- Swipe left or right on the Activity date to change days
-- Pinch the Activity heatmap to zoom, then swipe to pan
-- Swipe an expense left to reveal Edit and Delete
-- Swipe the expense right or tap elsewhere to close its actions
-
-## Requirements
-
-- [Node.js](https://nodejs.org/) 18 or newer
-- A modern browser
-
-No package installation or build step is required for the web application. The frontend dependencies used by the page are included in `vendor/`.
+- See how much you spent on a selected day
+- Browse spending with the Activity heatmap
+- Carry unused daily money forward with Auto rollover
+- Split your remaining budget across a chosen number of days
+- Reset your budget automatically each month
+- Use different currencies
+- Keep multiple local profiles with PINs
+- Remember a profile on your device
+- Upload a custom background by file picker, drag-and-drop, or paste
+- Generate the interface colors from your background image
+- Work on desktop and mobile
+- Run through the optional Android app
 
 ## Quick start
 
+You only need **Node.js 18 or newer**.
+
+### 1. Download the project
+
+If you have Git installed:
+
 ```bash
-git clone <your-repository-url>
-cd finance-manager
+git clone https://github.com/Rynowastaken/budget.git
+cd budget
+```
+
+Or download the repository as a ZIP from GitHub and extract it.
+
+### 2. Start the server
+
+```bash
 node server.js
 ```
 
-Open [http://localhost:4173](http://localhost:4173).
+### 3. Open Budget
 
-On first use, enter a profile name and PIN. If the profile does not exist, it will be created automatically.
-
-### Server configuration
-
-The server listens on every network interface at port `4173` by default. Override either value with environment variables:
-
-```bash
-HOST=127.0.0.1 PORT=8080 node server.js
-```
-
-To use the application from another device on your local network, keep the default host and open:
+Go to:
 
 ```text
-http://YOUR_COMPUTER_LAN_IP:4173
+http://localhost:4173
 ```
 
-Make sure the selected port is permitted by your firewall.
+That's it. There is no `npm install` and no build command.
 
-## Using the application
+## First-time setup
 
-### Budget settings
+When the login screen opens:
 
-Open the Overview tab and expand **Quota** to configure:
+1. Leave **Saved profiles** on **New profile**.
+2. Enter a profile name.
+3. Add a PIN if you want one.
+4. Turn on **Remember me** if you want this browser to open the profile automatically.
+5. Press the login button.
 
-- Daily quota
-- A quota override for today
-- Total available amount
-- Currency
-- Automatic rollover of unused daily money
+If the profile name does not already exist, Budget creates it for you.
 
-### Expenses and Activity
+## Using Budget
 
-The Activity tab lets you select a date, inspect its expenses, and add a new expense. Dates after today are disabled.
+### Set your budget
 
-On desktop, hover over an expense to reveal Edit and Delete. On mobile, swipe the expense left to reveal those actions.
+Open **Overview → Quota**.
 
-The heatmap summarizes the last 30 weeks. Darker cells represent days with higher spending relative to the largest daily total in that period. Tap a cell to select its date.
+The main options are:
 
-### Profiles
+- **Daily quota** — how much you want available each day.
+- **Today quota** — an override for the current day.
+- **Total amount** — your available budget.
+- **Currency** — controls how money is displayed.
+- **Auto rollover** — carries unused daily money into the next day.
 
-Profiles are stored on the server. A profile name is case-insensitive, and entering a new name creates a new profile. Enable **Remember me** to keep the active profile in that browser.
+Less common options are inside **Advanced options**.
 
-### Custom appearance
+### Add an expense
 
-Use the hamburger menu to upload or clear a background image. Uploaded images are resized and compressed in the browser before being saved by the server. The interface automatically derives a matching color palette from the image.
+Open **Activity**, choose a date, then press **+**.
 
-## Data storage and backups
+The new expense automatically uses the date you selected.
 
-Application data is stored in:
+You can enter:
+
+- an amount
+- a name
+- a date
+
+Budget also remembers recent expense names to make repeated entries quicker.
+
+### Activity and heatmap
+
+The Activity page shows:
+
+- the selected date
+- the total spent on that date
+- expenses for that date
+- a heatmap of spending for the selected month
+
+Tap a heatmap square to select that day.
+
+On mobile:
+
+- swipe the Activity date left or right to move between days
+- swipe the heatmap left or right to browse months
+- pinch the heatmap to zoom
+- drag a zoomed heatmap to pan
+- swipe an expense left to reveal Edit and Delete
+
+Future dates cannot be selected for expenses.
+
+## Backgrounds and appearance
+
+Open the hamburger menu and choose **Upload**.
+
+You can:
+
+- drag an image into the upload window
+- choose one from your files
+- paste an image with **Ctrl+V** or **⌘V**
+
+A preview appears before the image is applied.
+
+Budget resizes/compresses the image and creates a matching color palette for the interface.
+
+Choose **Clear** to remove the uploaded background and return to the default appearance. Clearing the background does **not** delete your budget or expenses.
+
+## Using Budget on another device
+
+By default, the server listens on port `4173` and is reachable from other devices on your local network.
+
+Find the local IP address of the computer running Budget, then open something like:
+
+```text
+http://192.168.1.100:4173
+```
+
+Your exact IP address will be different.
+
+If it does not connect, check that:
+
+- both devices are on the same network
+- `node server.js` is still running
+- your firewall allows port `4173`
+
+### Change the port
+
+For example, to use port `8080`:
+
+```bash
+PORT=8080 node server.js
+```
+
+To only allow connections from the same computer:
+
+```bash
+HOST=127.0.0.1 node server.js
+```
+
+## Where your data is stored
+
+Profile and budget data is stored in:
 
 ```text
 data/finance-db.json
@@ -105,11 +183,14 @@ Uploaded backgrounds are stored in:
 uploads/
 ```
 
-Back up both locations if you want to preserve profiles, budgets, expenses, and uploaded backgrounds. Stop the server before replacing the database file.
+If you want a backup, copy both of those locations somewhere safe.
 
-These directories may contain private financial information and should not be committed to a public repository.
+It is best to stop the server before replacing `finance-db.json` with a backup.
 
-For a public repository, a useful `.gitignore` starting point is:
+> [!WARNING]
+> These files can contain private financial information. Do not commit `data/` or `uploads/` to a public repository.
+
+A useful `.gitignore` is:
 
 ```gitignore
 data/
@@ -120,102 +201,77 @@ android/app/build/
 android/local.properties
 ```
 
-## Android client
+## Android app
 
-The `android/` directory contains an optional native Android wrapper. It connects a WebView to a Finance Manager server and remembers previously used server addresses.
+The `android/` folder contains an optional Android WebView wrapper.
 
-### Build requirements
+It does **not** replace the server. The Android app connects to a computer or server that is already running Budget.
 
-- Android SDK with API 35
-- Android build tools
-- Gradle compatible with Android Gradle Plugin 8.7.3
-
-Build a debug APK:
-
-```bash
-cd android
-gradle :app:assembleDebug
-```
-
-If Android cannot find the SDK, create `android/local.properties`:
-
-```properties
-sdk.dir=/path/to/Android/Sdk
-```
-
-The APK is generated at:
-
-```text
-android/app/build/outputs/apk/debug/app-debug.apk
-```
-
-Use a server address reachable from the Android device:
+For a phone on the same Wi-Fi network, use an address such as:
 
 ```text
 http://192.168.1.100:4173
 ```
 
-For the standard Android emulator, `10.0.2.2` points to the host machine:
+For the standard Android emulator, the host computer is available at:
 
 ```text
 http://10.0.2.2:4173
 ```
 
-See [android/README.md](android/README.md) for additional Android-specific details.
+For build instructions, see [android/README.md](android/README.md).
 
-## API overview
+## Important security note
 
-Authenticated requests use the profile credentials in the `X-Profile-Id` and `X-Profile-Pin` headers.
+Budget is designed mainly for personal use on a trusted device or local network.
 
-| Method | Endpoint | Purpose |
-| --- | --- | --- |
-| `GET` | `/api/assets` | Read versioned public asset information |
-| `GET` | `/api/profiles` | List public profile names |
-| `POST` | `/api/login` | Create or open a profile |
-| `GET` | `/api/state` | Read the authenticated profile state |
-| `PUT` | `/api/state` | Update budget, theme, and profile state |
-| `POST` | `/api/expenses` | Add an expense |
-| `PUT` | `/api/expenses/:id` | Update an expense |
-| `DELETE` | `/api/expenses/:id` | Delete an expense |
-| `POST` | `/api/background` | Upload a profile background |
+The built-in server does **not** provide everything you would expect from a production internet-facing service, such as:
 
-The server supports ETags, conditional reads, gzip responses, and minimal write responses.
+- HTTPS
+- rate limiting
+- account recovery
+- production-grade session management
 
-## Project structure
+PINs are salted and hashed when stored, but credentials are still sent with API requests.
+
+Do **not** expose the built-in server directly to the public internet. If you need remote access, put it behind HTTPS and proper access controls.
+
+## Project layout
 
 ```text
 .
-├── index.html              # Application markup
-├── server.js               # Static server, API, authentication, and storage
+├── index.html
+├── server.js
 ├── assets/
-│   ├── css/app.css         # Responsive theme and animations
-│   └── js/app.js           # Frontend state and interactions
-├── vendor/                 # Browser libraries served locally
-├── android/                # Optional Android WebView client
-├── data/                   # Generated profile database
-└── uploads/                # Generated background uploads
+│   ├── css/app.css
+│   └── js/app.js
+├── vendor/
+├── android/
+├── data/
+└── uploads/
 ```
 
-## Security notes
+The important files are:
 
-This project is intended for personal use on a trusted device or local network.
+- `index.html` — page structure
+- `assets/css/app.css` — styling and responsive layout
+- `assets/js/app.js` — frontend behavior
+- `server.js` — web server, API, profiles, and storage
 
-- PINs are salted and hashed in the JSON database, but credentials are sent with API requests.
-- The Android client allows cleartext HTTP for local-network servers.
-- The built-in server does not provide TLS, rate limiting, account recovery, or production-grade session management.
-- Do not expose it directly to the public internet. Use HTTPS and appropriate access controls through a trusted reverse proxy if remote access is required.
-- Anyone with filesystem access to the server can read or replace its stored data.
+## Making changes
 
-## Development
+There is no frontend build step.
 
-Edit `index.html`, `assets/css/app.css`, or `assets/js/app.js`, then refresh the browser. JavaScript syntax can be checked with:
+Edit the files, save them, and refresh your browser.
+
+You can check the JavaScript for syntax errors with:
 
 ```bash
 node --check assets/js/app.js
 node --check server.js
 ```
 
-Run the server on an alternate port while testing:
+If you want to run a second copy while testing:
 
 ```bash
 PORT=4174 node server.js
@@ -223,4 +279,4 @@ PORT=4174 node server.js
 
 ## License
 
-No license file is currently included. Add a license before distributing or accepting external contributions.
+There is currently no license file in this repository.
