@@ -160,6 +160,8 @@ const els = {
   debugPrevDay: document.getElementById("debugPrevDay"),
   debugResetDate: document.getElementById("debugResetDate"),
   debugNextDay: document.getElementById("debugNextDay"),
+  debugRestartServer: document.getElementById("debugRestartServer"),
+  debugRestartServerStatus: document.getElementById("debugRestartServerStatus"),
   applyColorScheme: document.getElementById("applyColorScheme"),
   uploadBackground: document.getElementById("uploadBackground"),
   backgroundUploadDialog: document.getElementById("backgroundUploadDialog"),
@@ -2441,6 +2443,50 @@ els.debugPrevDay?.addEventListener("click", () => setDebugDateOffset(debugDateOf
 els.debugNextDay?.addEventListener("click", () => setDebugDateOffset(debugDateOffset + 1));
 els.debugResetDate?.addEventListener("click", () => setDebugDateOffset(0));
 els.debugDatePicker?.addEventListener("change", () => setDebugDate(els.debugDatePicker.value));
+
+function setDebugRestartStatus(message = "", isError = false) {
+  if (!els.debugRestartServerStatus) return;
+  els.debugRestartServerStatus.textContent = message;
+  els.debugRestartServerStatus.classList.toggle("is-error", isError);
+}
+
+async function waitForServerRestart(previousInstanceId) {
+  const deadline = Date.now() + 15000;
+  while (Date.now() < deadline) {
+    await new Promise((resolve) => setTimeout(resolve, 450));
+    try {
+      const status = await api("/api/debug/status");
+      if (status.instanceId && status.instanceId !== previousInstanceId) {
+        return true;
+      }
+    } catch {
+      // The server is expected to be briefly unavailable while it restarts.
+    }
+  }
+  return false;
+}
+
+els.debugRestartServer?.addEventListener("click", async () => {
+  if (els.debugRestartServer.disabled) return;
+  els.debugRestartServer.disabled = true;
+  els.debugRestartServer.classList.add("is-restarting");
+  setDebugRestartStatus("Restarting server… this page will reload automatically.");
+
+  try {
+    const before = await api("/api/debug/status");
+    await api("/api/debug/restart", { method: "POST" });
+    const restarted = await waitForServerRestart(before.instanceId);
+    if (!restarted) {
+      throw new Error("The server did not come back within 15 seconds.");
+    }
+    setDebugRestartStatus("Server is back. Reloading…");
+    window.location.reload();
+  } catch (error) {
+    els.debugRestartServer.disabled = false;
+    els.debugRestartServer.classList.remove("is-restarting");
+    setDebugRestartStatus("Could not restart server: " + error.message, true);
+  }
+});
 
 els.applyColorScheme.addEventListener("click", async () => {
   const previousScheme = state.colorScheme;
