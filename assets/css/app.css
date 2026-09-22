@@ -1429,6 +1429,7 @@ nav[role="tablist"].glass {
   justify-content: center;
   min-height: 38px;
   transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+  white-space: nowrap;
 }
 
 .debug-date-button:hover:not(:disabled) {
@@ -1559,11 +1560,16 @@ nav[role="tablist"].glass {
 
   .debug-date-actions {
     display: grid;
-    grid-template-columns: repeat(3, minmax(0, 1fr));
+    grid-template-columns: minmax(0, 1fr) max-content minmax(0, 1fr);
   }
 
   .debug-date-button {
+    min-width: 0;
     padding-inline: 0.55rem;
+  }
+
+  #debugResetDate {
+    padding-inline: 0.75rem;
   }
 
   .settings-dialog-actions {
