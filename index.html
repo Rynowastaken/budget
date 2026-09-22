@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-54" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-55" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -541,6 +541,71 @@
       </section>
     </dialog>
 
+    <dialog id="backgroundUploadDialog" class="background-upload-dialog" aria-labelledby="backgroundUploadTitle" aria-describedby="backgroundUploadDescription">
+      <section class="background-upload-card glass">
+        <header class="background-upload-header">
+          <div class="background-upload-heading">
+            <span class="background-upload-heading-icon" aria-hidden="true">
+              <i data-lucide="image-up"></i>
+            </span>
+            <div class="min-w-0">
+              <h2 id="backgroundUploadTitle" class="text-xl font-semibold">Choose a background</h2>
+              <p id="backgroundUploadDescription" class="mt-1 text-sm font-medium" style="color: var(--muted)">
+                Drag in an image, choose a file, or paste an image from your clipboard.
+              </p>
+            </div>
+          </div>
+          <button id="backgroundUploadClose" class="background-upload-close focus-ring" type="button" aria-label="Close background uploader" title="Close">
+            <i data-lucide="x" aria-hidden="true"></i>
+          </button>
+        </header>
+
+        <div id="backgroundDropzone" class="background-dropzone mt-5">
+          <div class="background-dropzone-icon" aria-hidden="true">
+            <i data-lucide="image-plus"></i>
+          </div>
+          <div class="background-dropzone-copy">
+            <strong>Drag an image here</strong>
+            <span>PNG, JPG, WEBP, GIF, or another browser-supported image.</span>
+          </div>
+          <button id="backgroundChooseFile" class="background-choose-file focus-ring" type="button">
+            <i data-lucide="folder-open" aria-hidden="true"></i>
+            <span>Select from files</span>
+          </button>
+        </div>
+
+        <div class="background-paste-hint mt-3">
+          <i data-lucide="clipboard-paste" aria-hidden="true"></i>
+          <span><strong>Paste directly:</strong> copy an image, then press Ctrl+V or ⌘V while this window is open.</span>
+        </div>
+
+        <div id="backgroundUploadPreview" class="background-upload-preview mt-4 hidden">
+          <img id="backgroundUploadPreviewImage" alt="Selected background preview" />
+          <div class="background-upload-preview-meta">
+            <span class="background-upload-preview-icon" aria-hidden="true">
+              <i data-lucide="image"></i>
+            </span>
+            <div class="min-w-0">
+              <strong id="backgroundUploadPreviewName">Selected image</strong>
+              <span id="backgroundUploadPreviewSource">Ready to use</span>
+            </div>
+          </div>
+        </div>
+
+        <p id="backgroundUploadStatus" class="background-upload-status mt-3" aria-live="polite"></p>
+
+        <div class="background-upload-actions mt-5">
+          <button id="backgroundUploadCancel" class="background-upload-button focus-ring" type="button">
+            Cancel
+          </button>
+          <button id="backgroundUploadApply" class="background-upload-button background-upload-apply focus-ring" type="button" disabled>
+            <i data-lucide="check" aria-hidden="true"></i>
+            <span>Use background</span>
+          </button>
+        </div>
+      </section>
+    </dialog>
+
     <dialog id="clearBackgroundConfirmDialog" class="confirm-dialog" aria-labelledby="clearBackgroundConfirmTitle" aria-describedby="clearBackgroundConfirmDescription">
       <section class="confirm-dialog-card glass">
         <div class="confirm-dialog-icon confirm-dialog-icon-primary" aria-hidden="true">
@@ -587,6 +652,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260922-54"></script>
+    <script src="/assets/js/app.js?v=20260922-55"></script>
   </body>
 </html>
