@@ -1441,6 +1441,12 @@ nav[role="tablist"].glass {
   width: 20px;
 }
 
+.confirm-dialog-icon-primary {
+  background: var(--pink-soft);
+  border-color: var(--pink-ring);
+  color: var(--primary);
+}
+
 .confirm-dialog-copy {
   margin-top: 1rem;
 }
@@ -1473,6 +1479,20 @@ nav[role="tablist"].glass {
   border-color: var(--glass-border-hi);
   transform: translateY(-1px);
 }
+
+.confirm-dialog-primary {
+  background: var(--control-bg);
+  border-color: var(--control-border);
+  color: var(--control-text);
+}
+
+.confirm-dialog-primary:hover {
+  background: var(--control-hover-bg);
+  border-color: var(--control-hover-border);
+  color: var(--control-hover-text);
+}
+
+.confirm-dialog-primary svg,
 
 .confirm-dialog-danger {
   background: rgba(240, 113, 120, 0.12);
