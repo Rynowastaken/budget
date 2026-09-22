@@ -2231,6 +2231,71 @@ nav[role="tablist"].glass {
   width: 16px;
 }
 
+.debug-server-row {
+  align-items: center;
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  display: flex;
+  gap: 1rem;
+  justify-content: space-between;
+  padding-top: 1rem;
+}
+
+.debug-restart-button {
+  align-items: center;
+  background: var(--control-bg);
+  border: 1px solid var(--control-border);
+  border-radius: 12px;
+  color: var(--control-text);
+  display: inline-flex;
+  flex-shrink: 0;
+  font-size: 0.8rem;
+  font-weight: 700;
+  gap: 0.45rem;
+  justify-content: center;
+  min-height: 40px;
+  padding: 0.55rem 0.75rem;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+  white-space: nowrap;
+}
+
+.debug-restart-button:hover:not(:disabled) {
+  background: var(--control-hover-bg);
+  border-color: var(--control-hover-border);
+  color: var(--control-hover-text);
+  transform: translateY(-1px);
+}
+
+.debug-restart-button:disabled {
+  cursor: wait;
+  opacity: 0.68;
+}
+
+.debug-restart-button svg {
+  height: 16px;
+  width: 16px;
+}
+
+.debug-restart-button.is-restarting svg {
+  animation: debug-restart-spin 0.9s linear infinite;
+}
+
+.debug-server-status {
+  color: var(--muted);
+  font-size: 0.72rem;
+  font-weight: 650;
+  min-height: 1rem;
+}
+
+.debug-server-status.is-error {
+  color: var(--danger);
+}
+
+@keyframes debug-restart-spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
 .theme-adjustment {
   align-items: center;
   display: grid;
@@ -2355,6 +2420,15 @@ nav[role="tablist"].glass {
     padding-inline: 0.75rem;
   }
 
+  .debug-server-row {
+    align-items: stretch;
+    flex-direction: column;
+  }
+
+  .debug-restart-button {
+    width: 100%;
+  }
+
   .settings-dialog-actions {
     background: linear-gradient(transparent, rgba(14, 10, 18, 0.98) 38%);
     bottom: -1.25rem;
@@ -2383,7 +2457,9 @@ nav[role="tablist"].glass {
   .color-scheme-preview span,
   .scheme-apply,
   .site-switch,
-  .site-switch::after {
+  .site-switch::after,
+  .debug-restart-button,
+  .debug-restart-button svg {
     transition-duration: 0.01ms;
   }
 
