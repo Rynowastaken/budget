@@ -159,6 +159,9 @@ const els = {
   applyColorScheme: document.getElementById("applyColorScheme"),
   uploadBackground: document.getElementById("uploadBackground"),
   clearBackground: document.getElementById("clearBackground"),
+  clearBackgroundConfirmDialog: document.getElementById("clearBackgroundConfirmDialog"),
+  clearBackgroundConfirmCancel: document.getElementById("clearBackgroundConfirmCancel"),
+  clearBackgroundConfirmSubmit: document.getElementById("clearBackgroundConfirmSubmit"),
   resetData: document.getElementById("resetData"),
   resetConfirmDialog: document.getElementById("resetConfirmDialog"),
   resetConfirmCancel: document.getElementById("resetConfirmCancel"),
@@ -2264,12 +2267,49 @@ els.backgroundInput.addEventListener("change", async (event) => {
   reader.readAsDataURL(file);
 });
 
-els.clearBackground.addEventListener("click", async () => {
+function openClearBackgroundConfirmDialog() {
   setHeaderMenuOpen(false);
-  state.background = "";
-  state.palette = defaults.palette;
-  await saveState({ fields: { background: state.background, palette: state.palette }, includeBackground: true });
-  render();
+  if (!els.clearBackgroundConfirmDialog.open) {
+    els.clearBackgroundConfirmDialog.showModal();
+    renderIcons();
+  }
+  requestAnimationFrame(() => els.clearBackgroundConfirmCancel.focus());
+}
+
+function closeClearBackgroundConfirmDialog() {
+  if (!els.clearBackgroundConfirmDialog.open) return;
+  els.clearBackgroundConfirmDialog.close();
+  els.clearBackground.focus();
+}
+
+els.clearBackground.addEventListener("click", openClearBackgroundConfirmDialog);
+
+els.clearBackgroundConfirmCancel.addEventListener("click", closeClearBackgroundConfirmDialog);
+
+els.clearBackgroundConfirmSubmit.addEventListener("click", async () => {
+  els.clearBackgroundConfirmSubmit.disabled = true;
+  try {
+    state.background = "";
+    state.palette = defaults.palette;
+    await saveState({ fields: { background: state.background, palette: state.palette }, includeBackground: true });
+    closeClearBackgroundConfirmDialog();
+    render();
+    showAppMessage("Background cleared. Budget and expense data were kept.");
+  } catch (error) {
+    showAppMessage("Could not clear background: " + error.message, "error");
+  } finally {
+    els.clearBackgroundConfirmSubmit.disabled = false;
+  }
+});
+
+els.clearBackgroundConfirmDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeClearBackgroundConfirmDialog();
+});
+
+els.clearBackgroundConfirmDialog.addEventListener("click", (event) => {
+  if (event.target !== els.clearBackgroundConfirmDialog) return;
+  closeClearBackgroundConfirmDialog();
 });
 
 function openResetConfirmDialog() {
