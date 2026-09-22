@@ -158,6 +158,17 @@ const els = {
   debugNextDay: document.getElementById("debugNextDay"),
   applyColorScheme: document.getElementById("applyColorScheme"),
   uploadBackground: document.getElementById("uploadBackground"),
+  backgroundUploadDialog: document.getElementById("backgroundUploadDialog"),
+  backgroundUploadClose: document.getElementById("backgroundUploadClose"),
+  backgroundDropzone: document.getElementById("backgroundDropzone"),
+  backgroundChooseFile: document.getElementById("backgroundChooseFile"),
+  backgroundUploadPreview: document.getElementById("backgroundUploadPreview"),
+  backgroundUploadPreviewImage: document.getElementById("backgroundUploadPreviewImage"),
+  backgroundUploadPreviewName: document.getElementById("backgroundUploadPreviewName"),
+  backgroundUploadPreviewSource: document.getElementById("backgroundUploadPreviewSource"),
+  backgroundUploadStatus: document.getElementById("backgroundUploadStatus"),
+  backgroundUploadCancel: document.getElementById("backgroundUploadCancel"),
+  backgroundUploadApply: document.getElementById("backgroundUploadApply"),
   clearBackground: document.getElementById("clearBackground"),
   clearBackgroundConfirmDialog: document.getElementById("clearBackgroundConfirmDialog"),
   clearBackgroundConfirmCancel: document.getElementById("clearBackgroundConfirmCancel"),
@@ -204,6 +215,8 @@ let pendingColorScheme = defaults.colorScheme;
 let pendingThemeColorfulness = defaults.themeColorfulness;
 let pendingThemeBrightness = defaults.themeBrightness;
 let settingsDialogAnimation = null;
+let pendingBackgroundImage = "";
+let pendingBackgroundImageName = "";
 const assetCacheKey = "finance-manager-assets-v1";
 const androidBridge = window.FinanceManagerAndroid;
 document.body.classList.toggle("android-webview", Boolean(androidBridge?.changeServer));
@@ -2236,35 +2249,163 @@ els.settingsDialog.addEventListener("click", (event) => {
   closeSettingsDialog(true);
 });
 
-els.uploadBackground.addEventListener("click", () => {
+function resetBackgroundUploadDialog() {
+  pendingBackgroundImage = "";
+  pendingBackgroundImageName = "";
+  els.backgroundInput.value = "";
+  els.backgroundDropzone.classList.remove("is-dragover");
+  els.backgroundUploadPreview.classList.add("hidden");
+  els.backgroundUploadPreviewImage.removeAttribute("src");
+  els.backgroundUploadPreviewName.textContent = "Selected image";
+  els.backgroundUploadPreviewSource.textContent = "Ready to use";
+  els.backgroundUploadStatus.textContent = "";
+  els.backgroundUploadStatus.classList.remove("is-error");
+  els.backgroundUploadApply.disabled = true;
+}
+
+function setBackgroundUploadStatus(message = "", isError = false) {
+  els.backgroundUploadStatus.textContent = message;
+  els.backgroundUploadStatus.classList.toggle("is-error", isError);
+}
+
+function openBackgroundUploadDialog() {
   setHeaderMenuOpen(false);
+  resetBackgroundUploadDialog();
+  if (!els.backgroundUploadDialog.open) {
+    els.backgroundUploadDialog.showModal();
+    renderIcons();
+  }
+  requestAnimationFrame(() => els.backgroundChooseFile.focus());
+}
+
+function closeBackgroundUploadDialog() {
+  if (!els.backgroundUploadDialog.open) return;
+  els.backgroundUploadDialog.close();
+  resetBackgroundUploadDialog();
+  els.uploadBackground.focus();
+}
+
+function readBackgroundImageFile(file, sourceLabel = "Selected from files") {
+  if (!file) return;
+  if (!String(file.type || "").startsWith("image/")) {
+    setBackgroundUploadStatus("Choose or paste an image file.", true);
+    return;
+  }
+  if (file.size > 25 * 1024 * 1024) {
+    setBackgroundUploadStatus("That image is too large. Choose an image under 25 MB.", true);
+    return;
+  }
+
+  const reader = new FileReader();
+  reader.onload = () => {
+    pendingBackgroundImage = String(reader.result || "");
+    pendingBackgroundImageName = file.name || "Pasted image";
+    els.backgroundUploadPreviewImage.src = pendingBackgroundImage;
+    els.backgroundUploadPreviewName.textContent = pendingBackgroundImageName;
+    els.backgroundUploadPreviewSource.textContent = sourceLabel;
+    els.backgroundUploadPreview.classList.remove("hidden");
+    els.backgroundUploadApply.disabled = false;
+    setBackgroundUploadStatus("Image ready. Review the preview, then use it as your background.");
+    renderIcons();
+  };
+  reader.onerror = () => {
+    setBackgroundUploadStatus("Could not read that image. Try another file.", true);
+  };
+  reader.readAsDataURL(file);
+}
+
+els.uploadBackground.addEventListener("click", openBackgroundUploadDialog);
+
+els.backgroundChooseFile.addEventListener("click", () => {
   els.backgroundInput.click();
 });
 
-els.backgroundInput.addEventListener("change", async (event) => {
+els.backgroundInput.addEventListener("change", (event) => {
   const file = event.target.files?.[0];
   if (!file) return;
-  const reader = new FileReader();
-  reader.onload = async () => {
-    try {
-      showAppMessage("Processing background...");
-      const background = await prepareBackground(reader.result);
-      state.palette = await extractPalette(background);
-      state.background = await uploadCustomBackground(background);
-      await saveState({ fields: { background: state.background, palette: state.palette }, includeBackground: true });
-      showAppMessage("Background updated.");
-      render();
-    } catch (error) {
-      showAppMessage("Background upload failed: " + error.message, "error");
-    } finally {
-      els.backgroundInput.value = "";
-    }
-  };
-  reader.onerror = () => {
-    showAppMessage("Background upload failed: Could not read the selected file.", "error");
-    els.backgroundInput.value = "";
-  };
-  reader.readAsDataURL(file);
+  readBackgroundImageFile(file, "Selected from files");
+});
+
+["dragenter", "dragover"].forEach((eventName) => {
+  els.backgroundDropzone.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    els.backgroundDropzone.classList.add("is-dragover");
+  });
+});
+
+["dragleave", "drop"].forEach((eventName) => {
+  els.backgroundDropzone.addEventListener(eventName, (event) => {
+    event.preventDefault();
+    event.stopPropagation();
+    els.backgroundDropzone.classList.remove("is-dragover");
+  });
+});
+
+els.backgroundDropzone.addEventListener("drop", (event) => {
+  const file = [...(event.dataTransfer?.files || [])].find((entry) => String(entry.type || "").startsWith("image/"));
+  if (!file) {
+    setBackgroundUploadStatus("Drop an image file here.", true);
+    return;
+  }
+  readBackgroundImageFile(file, "Dropped into uploader");
+});
+
+els.backgroundUploadDialog.addEventListener("paste", (event) => {
+  const items = [...(event.clipboardData?.items || [])];
+  const imageItem = items.find((item) => String(item.type || "").startsWith("image/"));
+  const file = imageItem?.getAsFile();
+  if (!file) {
+    setBackgroundUploadStatus("Your clipboard does not contain an image.", true);
+    return;
+  }
+  event.preventDefault();
+  readBackgroundImageFile(file, "Pasted from clipboard");
+});
+
+els.backgroundUploadApply.addEventListener("click", async () => {
+  if (!pendingBackgroundImage) return;
+
+  const previousBackground = state.background;
+  const previousPalette = state.palette;
+  els.backgroundUploadApply.disabled = true;
+  els.backgroundChooseFile.disabled = true;
+  setBackgroundUploadStatus("Processing and saving background...");
+
+  try {
+    const preparedBackground = await prepareBackground(pendingBackgroundImage);
+    const nextPalette = await extractPalette(preparedBackground);
+    const nextBackground = await uploadCustomBackground(preparedBackground);
+    state.background = nextBackground;
+    state.palette = nextPalette;
+    await saveState({
+      fields: { background: state.background, palette: state.palette },
+      includeBackground: true,
+    });
+    closeBackgroundUploadDialog();
+    render();
+    showAppMessage("Background updated.");
+  } catch (error) {
+    state.background = previousBackground;
+    state.palette = previousPalette;
+    els.backgroundUploadApply.disabled = false;
+    setBackgroundUploadStatus("Could not save background: " + error.message, true);
+  } finally {
+    els.backgroundChooseFile.disabled = false;
+  }
+});
+
+els.backgroundUploadClose.addEventListener("click", closeBackgroundUploadDialog);
+els.backgroundUploadCancel.addEventListener("click", closeBackgroundUploadDialog);
+
+els.backgroundUploadDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeBackgroundUploadDialog();
+});
+
+els.backgroundUploadDialog.addEventListener("click", (event) => {
+  if (event.target !== els.backgroundUploadDialog) return;
+  closeBackgroundUploadDialog();
 });
 
 function openClearBackgroundConfirmDialog() {
