@@ -2272,6 +2272,7 @@ els.activityHeatmapViewport.addEventListener("touchstart", (event) => {
       lastY: touch.clientY,
       startScrollLeft: els.activityHeatmapViewport.scrollLeft,
       canPan: els.activityHeatmapViewport.scrollWidth > els.activityHeatmapViewport.clientWidth + 1,
+      axis: null,
       moved: false,
     };
     return;
@@ -2309,8 +2310,24 @@ els.activityHeatmapViewport.addEventListener("touchmove", (event) => {
   activityHeatmapPan.lastY = touch.clientY;
   const deltaX = touch.clientX - activityHeatmapPan.startX;
   const deltaY = touch.clientY - activityHeatmapPan.startY;
+  const absX = Math.abs(deltaX);
+  const absY = Math.abs(deltaY);
 
-  if (Math.abs(deltaX) <= Math.abs(deltaY) || Math.abs(deltaX) < 6) return;
+  if (!activityHeatmapPan.axis) {
+    if (Math.max(absX, absY) < 8) return;
+    if (absY > absX * 1.15) {
+      activityHeatmapPan.axis = "vertical";
+      return;
+    }
+    if (absX > absY * 1.15) {
+      activityHeatmapPan.axis = "horizontal";
+    } else {
+      return;
+    }
+  }
+
+  if (activityHeatmapPan.axis === "vertical") return;
+
   event.preventDefault();
   activityHeatmapPan.moved = true;
   els.activityHeatmapViewport.classList.add("is-panning");
