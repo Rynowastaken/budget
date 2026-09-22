@@ -450,6 +450,10 @@ label:has(#rolloverEnabled) {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
+label:has(#rolloverEnabled) {
+  border-radius: 14px !important;
+}
+
 .quota-advanced {
   background: rgba(255, 255, 255, 0.045);
   border: 1px solid var(--glass-border);
