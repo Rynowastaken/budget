@@ -1,4 +1,5 @@
 const crypto = require("crypto");
+const { spawn } = require("child_process");
 const fs = require("fs");
 const http = require("http");
 const path = require("path");
@@ -13,7 +14,10 @@ const dbPath = path.join(dataDir, "finance-db.json");
 const dbTmpPath = `${dbPath}.tmp`;
 const imageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avif", ".bmp", ".ico"];
 const staticCache = new Map();
+const serverInstanceId = crypto.randomUUID?.() || crypto.randomBytes(16).toString("hex");
+const serverStartedAt = Date.now();
 let dbCache = null;
+let restartScheduled = false;
 
 const defaults = {
   dailyQuota: 25,
@@ -236,6 +240,47 @@ async function handleApi(req, res) {
 
       const state = stateForUser(db, id);
       sendJson(res, 200, { user: publicUser(user), state }, { cacheControl: "private, no-cache", etag: jsonEtag(state) });
+      return;
+    }
+
+    if (req.method === "GET" && url.pathname === "/api/debug/status") {
+      const user = authenticate(req, db);
+      if (!user) {
+        sendError(res, 401, "Login required.");
+        return;
+      }
+      sendJson(res, 200, {
+        instanceId: serverInstanceId,
+        startedAt: serverStartedAt,
+        restartScheduled,
+      });
+      return;
+    }
+
+    if (req.method === "POST" && url.pathname === "/api/debug/restart") {
+      const user = authenticate(req, db);
+      if (!user) {
+        sendError(res, 401, "Login required.");
+        return;
+      }
+      if (restartScheduled) {
+        sendJson(res, 202, {
+          ok: true,
+          restarting: true,
+          instanceId: serverInstanceId,
+        });
+        return;
+      }
+
+      restartScheduled = true;
+      sendJson(res, 202, {
+        ok: true,
+        restarting: true,
+        instanceId: serverInstanceId,
+      });
+      res.once("finish", () => {
+        setTimeout(restartServerProcess, 120).unref();
+      });
       return;
     }
 
@@ -514,6 +559,46 @@ function sendBody(res, status, headers, content) {
 
 function isCompressible(contentType = "") {
   return /^(application\/json|text\/|image\/svg\+xml)/.test(contentType);
+}
+
+function restartServerProcess() {
+  const restartMode = String(process.env.BUDGET_RESTART_MODE || "self").trim().toLowerCase();
+  let finished = false;
+
+  function finishRestart() {
+    if (finished) return;
+    finished = true;
+
+    if (restartMode === "exit") {
+      process.exit(0);
+      return;
+    }
+
+    try {
+      const child = spawn(process.execPath, process.argv.slice(1), {
+        cwd: root,
+        env: process.env,
+        detached: true,
+        stdio: "inherit",
+      });
+      child.unref();
+      setTimeout(() => process.exit(0), 60).unref();
+    } catch (error) {
+      restartScheduled = false;
+      console.error("Could not restart Finance Manager server:", error);
+      server.listen(port, host);
+    }
+  }
+
+  console.log("Restart requested from Debug settings.");
+  server.close(finishRestart);
+  server.closeIdleConnections?.();
+
+  setTimeout(() => {
+    server.closeAllConnections?.();
+  }, 1200).unref();
+
+  setTimeout(finishRestart, 2500).unref();
 }
 
 const server = http.createServer((req, res) => {
