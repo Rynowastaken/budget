@@ -2317,6 +2317,7 @@ function readBackgroundImageFile(file, sourceLabel = "Selected from files") {
 els.uploadBackground.addEventListener("click", openBackgroundUploadDialog);
 
 els.backgroundChooseFile.addEventListener("click", () => {
+  els.backgroundInput.value = "";
   els.backgroundInput.click();
 });
 
