@@ -181,6 +181,9 @@ const els = {
   resetConfirmDialog: document.getElementById("resetConfirmDialog"),
   resetConfirmCancel: document.getElementById("resetConfirmCancel"),
   resetConfirmSubmit: document.getElementById("resetConfirmSubmit"),
+  logoutConfirmDialog: document.getElementById("logoutConfirmDialog"),
+  logoutConfirmCancel: document.getElementById("logoutConfirmCancel"),
+  logoutConfirmSubmit: document.getElementById("logoutConfirmSubmit"),
   switchProfile: document.getElementById("switchProfile"),
   changeServer: document.getElementById("changeServer"),
   changeServerAuth: document.getElementById("changeServerAuth"),
@@ -2631,9 +2634,38 @@ els.resetConfirmDialog.addEventListener("click", (event) => {
   closeResetConfirmDialog();
 });
 
-els.switchProfile.addEventListener("click", () => {
+function openLogoutConfirmDialog() {
   setHeaderMenuOpen(false);
+  if (!els.logoutConfirmDialog.open) {
+    els.logoutConfirmDialog.showModal();
+    renderIcons();
+  }
+  requestAnimationFrame(() => els.logoutConfirmCancel.focus());
+}
+
+function closeLogoutConfirmDialog() {
+  if (!els.logoutConfirmDialog.open) return;
+  els.logoutConfirmDialog.close();
+  els.switchProfile.focus();
+}
+
+els.switchProfile.addEventListener("click", openLogoutConfirmDialog);
+
+els.logoutConfirmCancel.addEventListener("click", closeLogoutConfirmDialog);
+
+els.logoutConfirmSubmit.addEventListener("click", () => {
+  els.logoutConfirmDialog.close();
   showAuth("Logged out.");
+});
+
+els.logoutConfirmDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeLogoutConfirmDialog();
+});
+
+els.logoutConfirmDialog.addEventListener("click", (event) => {
+  if (event.target !== els.logoutConfirmDialog) return;
+  closeLogoutConfirmDialog();
 });
 
 function changeAndroidServer() {
