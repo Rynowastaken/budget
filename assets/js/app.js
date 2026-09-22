@@ -214,6 +214,9 @@ let quotaDetailsAnimation = null;
 let quotaDetailsExpanded = els.quotaDetails.open;
 let activityHeatmapZoom = 1;
 let activityHeatmapPinch = null;
+let activityHeatmapPan = null;
+let activityHeatmapBaseCellSize = 0;
+let suppressActivityHeatmapClick = false;
 let activityDateSwipe = null;
 let suppressActivityDateClick = false;
 let expenseRowSwipe = null;
@@ -1063,15 +1066,31 @@ function renderActivityHeatmap() {
   }).join("");
 }
 
+function getActivityHeatmapBaseCellSize() {
+  if (activityHeatmapBaseCellSize > 0) return activityHeatmapBaseCellSize;
+  const cell = els.activityHeatmap.querySelector(".activity-cell, .activity-cell-placeholder");
+  const measured = cell ? Number.parseFloat(getComputedStyle(cell).width) : 0;
+  activityHeatmapBaseCellSize = measured > 0
+    ? measured / Math.max(activityHeatmapZoom, 1)
+    : 22;
+  return activityHeatmapBaseCellSize;
+}
+
 function setActivityHeatmapZoom(nextZoom, anchor = null) {
   const previousZoom = activityHeatmapZoom;
+  const previousWidth = els.activityHeatmap.scrollWidth || 1;
   activityHeatmapZoom = clamp(Math.round(nextZoom * 100) / 100, 1, 3);
-  els.activityHeatmap.style.setProperty("--heatmap-mobile-cell-size", `${activityHeatmapZoom * 13}px`);
+  const baseCellSize = getActivityHeatmapBaseCellSize();
+  els.activityHeatmap.style.setProperty(
+    "--heatmap-mobile-cell-size",
+    `${Math.round(baseCellSize * activityHeatmapZoom * 100) / 100}px`,
+  );
 
   if (previousZoom === activityHeatmapZoom) return;
   if (anchor) {
     void els.activityHeatmap.offsetWidth;
-    els.activityHeatmapViewport.scrollLeft = (anchor.contentX * activityHeatmapZoom) - anchor.viewportX;
+    const scaleRatio = els.activityHeatmap.scrollWidth / previousWidth;
+    els.activityHeatmapViewport.scrollLeft = ((els.activityHeatmapViewport.scrollLeft + anchor.viewportX) * scaleRatio) - anchor.viewportX;
   }
 }
 
@@ -2223,47 +2242,122 @@ els.activityCalendarGrid.addEventListener("click", (event) => {
 });
 
 els.activityHeatmap.addEventListener("click", (event) => {
+  if (suppressActivityHeatmapClick) return;
   const button = event.target.closest("[data-heatmap-date]");
   if (!button || button.disabled) return;
   selectSharedDate(button.dataset.heatmapDate);
   render();
 });
 
+function shiftActivityHeatmapMonth(months) {
+  const current = dateFromISO(selectedActivityDate);
+  const targetMonth = new Date(current.getFullYear(), current.getMonth() + months, 1);
+  const lastDay = new Date(targetMonth.getFullYear(), targetMonth.getMonth() + 1, 0).getDate();
+  targetMonth.setDate(Math.min(current.getDate(), lastDay));
+  selectSharedDate(targetMonth.toLocaleDateString("en-CA"));
+  render();
+}
+
 els.activityHeatmapViewport.addEventListener("touchstart", (event) => {
-  if (event.touches.length !== 2 || !window.matchMedia("(max-width: 639px)").matches) return;
+  if (!window.matchMedia("(max-width: 639px)").matches) return;
+
+  if (event.touches.length === 1) {
+    const touch = event.touches[0];
+    activityHeatmapPan = {
+      startX: touch.clientX,
+      startY: touch.clientY,
+      lastX: touch.clientX,
+      lastY: touch.clientY,
+      startScrollLeft: els.activityHeatmapViewport.scrollLeft,
+      canPan: els.activityHeatmapViewport.scrollWidth > els.activityHeatmapViewport.clientWidth + 1,
+      moved: false,
+    };
+    return;
+  }
+
+  if (event.touches.length !== 2) return;
+  activityHeatmapPan = null;
   event.preventDefault();
+  getActivityHeatmapBaseCellSize();
   const rect = els.activityHeatmapViewport.getBoundingClientRect();
   const viewportX = heatmapTouchMidpointX(event.touches) - rect.left;
   activityHeatmapPinch = {
     startDistance: heatmapTouchDistance(event.touches),
     startZoom: activityHeatmapZoom,
-    anchor: {
-      viewportX,
-      contentX: (els.activityHeatmapViewport.scrollLeft + viewportX) / activityHeatmapZoom,
-    },
+    anchor: { viewportX },
   };
   els.activityHeatmapViewport.classList.add("is-pinching");
 }, { passive: false });
 
 els.activityHeatmapViewport.addEventListener("touchmove", (event) => {
-  if (!activityHeatmapPinch || event.touches.length < 2) return;
+  if (activityHeatmapPinch && event.touches.length >= 2) {
+    event.preventDefault();
+    const distance = heatmapTouchDistance(event.touches);
+    if (!activityHeatmapPinch.startDistance) return;
+    setActivityHeatmapZoom(
+      activityHeatmapPinch.startZoom * (distance / activityHeatmapPinch.startDistance),
+      activityHeatmapPinch.anchor,
+    );
+    return;
+  }
+
+  if (!activityHeatmapPan || event.touches.length !== 1) return;
+  const touch = event.touches[0];
+  activityHeatmapPan.lastX = touch.clientX;
+  activityHeatmapPan.lastY = touch.clientY;
+  const deltaX = touch.clientX - activityHeatmapPan.startX;
+  const deltaY = touch.clientY - activityHeatmapPan.startY;
+
+  if (Math.abs(deltaX) <= Math.abs(deltaY) || Math.abs(deltaX) < 6) return;
   event.preventDefault();
-  const distance = heatmapTouchDistance(event.touches);
-  if (!activityHeatmapPinch.startDistance) return;
-  setActivityHeatmapZoom(
-    activityHeatmapPinch.startZoom * (distance / activityHeatmapPinch.startDistance),
-    activityHeatmapPinch.anchor,
-  );
+  activityHeatmapPan.moved = true;
+  els.activityHeatmapViewport.classList.add("is-panning");
+
+  if (activityHeatmapPan.canPan) {
+    els.activityHeatmapViewport.scrollLeft = activityHeatmapPan.startScrollLeft - deltaX;
+    return;
+  }
+
+  const offset = clamp(deltaX * 0.22, -24, 24);
+  els.activityHeatmap.style.transform = `translateX(${offset}px)`;
 }, { passive: false });
 
-function endActivityHeatmapPinch(event) {
-  if (!activityHeatmapPinch || event.touches.length >= 2) return;
-  activityHeatmapPinch = null;
-  els.activityHeatmapViewport.classList.remove("is-pinching");
+function finishActivityHeatmapGesture(event, cancelled = false) {
+  if (activityHeatmapPinch && event.touches.length < 2) {
+    activityHeatmapPinch = null;
+    els.activityHeatmapViewport.classList.remove("is-pinching");
+  }
+
+  if (!activityHeatmapPan) return;
+  const pan = activityHeatmapPan;
+  const touch = event.changedTouches?.[0];
+  const endX = touch?.clientX ?? pan.lastX;
+  const endY = touch?.clientY ?? pan.lastY;
+  const deltaX = endX - pan.startX;
+  const deltaY = endY - pan.startY;
+  activityHeatmapPan = null;
+  els.activityHeatmapViewport.classList.remove("is-panning");
+  els.activityHeatmap.style.removeProperty("transform");
+
+  if (pan.moved && Math.abs(deltaX) >= 12) {
+    suppressActivityHeatmapClick = true;
+    setTimeout(() => {
+      suppressActivityHeatmapClick = false;
+    }, 360);
+  }
+
+  if (
+    !cancelled
+    && !pan.canPan
+    && Math.abs(deltaX) >= 48
+    && Math.abs(deltaX) > Math.abs(deltaY) * 1.2
+  ) {
+    shiftActivityHeatmapMonth(deltaX < 0 ? 1 : -1);
+  }
 }
 
-els.activityHeatmapViewport.addEventListener("touchend", endActivityHeatmapPinch);
-els.activityHeatmapViewport.addEventListener("touchcancel", endActivityHeatmapPinch);
+els.activityHeatmapViewport.addEventListener("touchend", (event) => finishActivityHeatmapGesture(event));
+els.activityHeatmapViewport.addEventListener("touchcancel", (event) => finishActivityHeatmapGesture(event, true));
 
 function animateSettingsDialog(isOpening) {
   settingsDialogAnimation?.cancel();
