@@ -445,12 +445,7 @@ button[style*="--primary"],
 }
 
 #emptyState,
-label:has(#rolloverEnabled),
-.split-budget-option,
-label:has(#budgetResetEnabled),
-.budget-reset-options,
-.manual-budget-add,
-.manual-budget-reset {
+label:has(#rolloverEnabled) {
   background: rgba(255, 255, 255, 0.07) !important;
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
