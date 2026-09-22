@@ -1,6 +1,22 @@
 const sessionKey = "finance-manager-active-profile-v2";
 const persistentSessionKey = "finance-manager-remembered-profile-v1";
-const todayISO = () => new Date().toLocaleDateString("en-CA");
+const debugDateOffsetKey = "finance-manager-debug-date-offset-v1";
+
+const realTodayISO = () => new Date().toLocaleDateString("en-CA");
+
+function loadDebugDateOffset() {
+  const value = Number.parseInt(localStorage.getItem(debugDateOffsetKey) || "0", 10);
+  return Number.isFinite(value) ? Math.min(3650, Math.max(-3650, value)) : 0;
+}
+
+let debugDateOffset = loadDebugDateOffset();
+
+const todayISO = () => {
+  const date = new Date();
+  date.setHours(12, 0, 0, 0);
+  date.setDate(date.getDate() + debugDateOffset);
+  return date.toLocaleDateString("en-CA");
+};
 
 const defaults = {
   dailyQuota: 25,
@@ -127,6 +143,11 @@ const els = {
   themeColorfulnessValue: document.getElementById("themeColorfulnessValue"),
   themeBrightness: document.getElementById("themeBrightness"),
   themeBrightnessValue: document.getElementById("themeBrightnessValue"),
+  debugDatePicker: document.getElementById("debugDatePicker"),
+  debugDateOffsetLabel: document.getElementById("debugDateOffsetLabel"),
+  debugPrevDay: document.getElementById("debugPrevDay"),
+  debugResetDate: document.getElementById("debugResetDate"),
+  debugNextDay: document.getElementById("debugNextDay"),
   applyColorScheme: document.getElementById("applyColorScheme"),
   uploadBackground: document.getElementById("uploadBackground"),
   clearBackground: document.getElementById("clearBackground"),
@@ -553,6 +574,39 @@ function datesBetween(startDate, endDate) {
 function dateFromISO(date) {
   const [year, month, day] = String(date || todayISO()).split("-").map(Number);
   return new Date(year, (month || 1) - 1, day || 1);
+}
+
+function isoDayNumber(date) {
+  const parsed = dateFromISO(date);
+  return Math.round(Date.UTC(parsed.getFullYear(), parsed.getMonth(), parsed.getDate()) / 86400000);
+}
+
+function syncDebugDateControls() {
+  if (!els.debugDatePicker) return;
+  const simulatedToday = todayISO();
+  const offset = debugDateOffset;
+  els.debugDatePicker.value = simulatedToday;
+  els.debugDateOffsetLabel.textContent = offset === 0
+    ? `Using the real device date (${formatDateLabel(realTodayISO())}).`
+    : `${Math.abs(offset)} day${Math.abs(offset) === 1 ? "" : "s"} ${offset > 0 ? "ahead of" : "behind"} the real date · Real today: ${formatDateLabel(realTodayISO())}.`;
+  els.debugResetDate.disabled = offset === 0;
+}
+
+function setDebugDateOffset(nextOffset) {
+  debugDateOffset = clamp(Math.round(Number(nextOffset) || 0), -3650, 3650);
+  if (debugDateOffset === 0) {
+    localStorage.removeItem(debugDateOffsetKey);
+  } else {
+    localStorage.setItem(debugDateOffsetKey, String(debugDateOffset));
+  }
+  selectSharedDate(todayISO());
+  syncDebugDateControls();
+  render();
+}
+
+function setDebugDate(date) {
+  if (!date) return;
+  setDebugDateOffset(isoDayNumber(date) - isoDayNumber(realTodayISO()));
 }
 
 function normalizeBudgetResetDay(value = state.budgetResetDay) {
@@ -1979,6 +2033,7 @@ function openSettingsDialog() {
     pendingThemeColorfulness,
     pendingThemeBrightness,
   ));
+  syncDebugDateControls();
   if (!els.settingsDialog.open) els.settingsDialog.showModal();
   animateSettingsDialog(true);
 }
@@ -2025,6 +2080,11 @@ function previewThemeAdjustments() {
 
 els.themeColorfulness.addEventListener("input", previewThemeAdjustments);
 els.themeBrightness.addEventListener("input", previewThemeAdjustments);
+
+els.debugPrevDay?.addEventListener("click", () => setDebugDateOffset(debugDateOffset - 1));
+els.debugNextDay?.addEventListener("click", () => setDebugDateOffset(debugDateOffset + 1));
+els.debugResetDate?.addEventListener("click", () => setDebugDateOffset(0));
+els.debugDatePicker?.addEventListener("change", () => setDebugDate(els.debugDatePicker.value));
 
 els.applyColorScheme.addEventListener("click", async () => {
   const previousScheme = state.colorScheme;
