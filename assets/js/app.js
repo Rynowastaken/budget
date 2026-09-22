@@ -60,6 +60,10 @@ const els = {
   appShell: document.getElementById("appShell"),
   loginForm: document.getElementById("loginForm"),
   profileSelect: document.getElementById("profileSelect"),
+  profilePicker: document.getElementById("profilePicker"),
+  profilePickerToggle: document.getElementById("profilePickerToggle"),
+  profilePickerValue: document.getElementById("profilePickerValue"),
+  profilePickerMenu: document.getElementById("profilePickerMenu"),
   profileName: document.getElementById("profileName"),
   profilePin: document.getElementById("profilePin"),
   rememberLogin: document.getElementById("rememberLogin"),
@@ -479,11 +483,97 @@ function showAppMessage(message, tone = "info") {
   els.appMessage.style.color = tone === "error" ? "var(--danger)" : "var(--primary)";
 }
 
+function setProfilePickerOpen(isOpen, focusSelected = false) {
+  els.profilePicker.classList.toggle("is-open", isOpen);
+  els.profilePickerMenu.classList.toggle("hidden", !isOpen);
+  els.profilePickerToggle.setAttribute("aria-expanded", String(isOpen));
+
+  if (isOpen && focusSelected) {
+    requestAnimationFrame(() => {
+      (els.profilePickerMenu.querySelector('[aria-selected="true"]')
+        || els.profilePickerMenu.querySelector("[data-profile-id]"))?.focus();
+    });
+  }
+}
+
+function syncProfilePicker() {
+  const selectedValue = els.profileSelect.value || "";
+  const selectedOption = els.profilePickerMenu.querySelector(
+    `[data-profile-id="${CSS.escape(selectedValue)}"]`,
+  );
+  els.profilePickerMenu.querySelectorAll("[data-profile-id]").forEach((option) => {
+    option.setAttribute("aria-selected", String(option.dataset.profileId === selectedValue));
+  });
+
+  const nativeOption = [...els.profileSelect.options].find((option) => option.value === selectedValue);
+  els.profilePickerValue.textContent = nativeOption?.textContent || "New profile";
+
+  const icon = els.profilePickerToggle.querySelector(".profile-picker-value-icon");
+  if (icon) {
+    icon.innerHTML = selectedValue
+      ? '<i data-lucide="user-round" aria-hidden="true"></i>'
+      : '<i data-lucide="user-round-plus" aria-hidden="true"></i>';
+    renderIcons();
+  }
+
+  return selectedOption;
+}
+
+function chooseProfile(profileId) {
+  const nextValue = profileId || "";
+  els.profileSelect.value = nextValue;
+  const nativeOption = [...els.profileSelect.options].find((option) => option.value === nextValue);
+  els.profileName.value = nextValue ? (nativeOption?.textContent || "") : "";
+  els.profilePin.value = "";
+  els.authMessage.textContent = "";
+  syncProfilePicker();
+  setProfilePickerOpen(false);
+  els.profilePickerToggle.focus();
+}
+
 async function renderProfileOptions() {
   const users = await getUsers();
+  const previousValue = els.profileSelect.value || "";
   els.profileSelect.innerHTML = `<option value="">New profile</option>${users
     .map((user) => `<option value="${escapeHtml(user.id)}">${escapeHtml(user.name)}</option>`)
     .join("")}`;
+
+  const hasPrevious = [...els.profileSelect.options].some((option) => option.value === previousValue);
+  els.profileSelect.value = hasPrevious ? previousValue : "";
+
+  els.profilePickerMenu.innerHTML = [
+    `
+      <button class="profile-picker-option focus-ring" type="button" role="option" data-profile-id="">
+        <span class="profile-picker-option-main">
+          <span class="profile-picker-option-icon" aria-hidden="true">
+            <i data-lucide="user-round-plus"></i>
+          </span>
+          <span class="profile-picker-option-copy">
+            <strong>New profile</strong>
+            <small>Create another local profile</small>
+          </span>
+        </span>
+        <i class="profile-picker-option-check" data-lucide="check" aria-hidden="true"></i>
+      </button>
+    `,
+    ...users.map((user) => `
+      <button class="profile-picker-option focus-ring" type="button" role="option" data-profile-id="${escapeHtml(user.id)}">
+        <span class="profile-picker-option-main">
+          <span class="profile-picker-option-icon" aria-hidden="true">
+            <i data-lucide="user-round"></i>
+          </span>
+          <span class="profile-picker-option-copy">
+            <strong>${escapeHtml(user.name)}</strong>
+            <small>Saved profile</small>
+          </span>
+        </span>
+        <i class="profile-picker-option-check" data-lucide="check" aria-hidden="true"></i>
+      </button>
+    `),
+  ].join("");
+
+  syncProfilePicker();
+  renderIcons();
 }
 
 async function openProfile(name, pin) {
@@ -1733,11 +1823,54 @@ els.loginForm.addEventListener("submit", async (event) => {
   await openProfile(els.profileName.value, els.profilePin.value);
 });
 
-els.profileSelect.addEventListener("change", async () => {
-  const users = await getUsers();
-  const selected = users.find((user) => user.id === els.profileSelect.value);
-  els.profileName.value = selected?.name || "";
-  els.authMessage.textContent = "";
+els.profilePickerToggle.addEventListener("click", () => {
+  setProfilePickerOpen(!els.profilePicker.classList.contains("is-open"), false);
+});
+
+els.profilePickerToggle.addEventListener("keydown", (event) => {
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+  event.preventDefault();
+  setProfilePickerOpen(true, true);
+});
+
+els.profilePickerMenu.addEventListener("click", (event) => {
+  const option = event.target.closest("[data-profile-id]");
+  if (!option) return;
+  chooseProfile(option.dataset.profileId);
+});
+
+els.profilePickerMenu.addEventListener("keydown", (event) => {
+  const options = [...els.profilePickerMenu.querySelectorAll("[data-profile-id]")];
+  const currentIndex = options.indexOf(document.activeElement);
+
+  if (event.key === "Escape") {
+    event.preventDefault();
+    setProfilePickerOpen(false);
+    els.profilePickerToggle.focus();
+    return;
+  }
+
+  if (event.key === "Enter" || event.key === " ") {
+    const option = event.target.closest("[data-profile-id]");
+    if (!option) return;
+    event.preventDefault();
+    chooseProfile(option.dataset.profileId);
+    return;
+  }
+
+  if (event.key !== "ArrowDown" && event.key !== "ArrowUp") return;
+  event.preventDefault();
+  const direction = event.key === "ArrowDown" ? 1 : -1;
+  const nextIndex = currentIndex < 0
+    ? 0
+    : (currentIndex + direction + options.length) % options.length;
+  options[nextIndex]?.focus();
+});
+
+document.addEventListener("click", (event) => {
+  if (!els.profilePicker?.classList.contains("is-open")) return;
+  if (els.profilePicker.contains(event.target)) return;
+  setProfilePickerOpen(false);
 });
 
 els.overviewTab.addEventListener("click", () => {
