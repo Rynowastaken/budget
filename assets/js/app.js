@@ -66,6 +66,8 @@ const els = {
   profilePickerMenu: document.getElementById("profilePickerMenu"),
   profileName: document.getElementById("profileName"),
   profilePin: document.getElementById("profilePin"),
+  debugLoginAccess: document.getElementById("debugLoginAccess"),
+  debugAccessKey: document.getElementById("debugAccessKey"),
   rememberLogin: document.getElementById("rememberLogin"),
   authLogo: document.getElementById("authLogo"),
   serverLogo: document.getElementById("serverLogo"),
@@ -242,11 +244,11 @@ function loadSession() {
   }
 }
 
-function saveSession(userId, pin, remember = false) {
-  session = { userId, pin, remember };
+function saveSession(userId, pin, remember = false, debugKey = "") {
+  session = { userId, pin, remember, debugKey: String(debugKey || "") };
   sessionStorage.setItem(sessionKey, JSON.stringify(session));
   if (remember) {
-    localStorage.setItem(persistentSessionKey, JSON.stringify(session));
+    localStorage.setItem(persistentSessionKey, JSON.stringify({ userId, pin, remember }));
   } else {
     localStorage.removeItem(persistentSessionKey);
   }
@@ -267,6 +269,7 @@ async function api(path, options = {}) {
   if (options.body) headers["Content-Type"] = "application/json";
   if (session?.userId) headers["X-Profile-Id"] = session.userId;
   if (session?.pin !== undefined) headers["X-Profile-Pin"] = session.pin;
+  if (session?.debugKey) headers["X-Debug-Key"] = session.debugKey;
 
   const response = await fetch(path, { ...options, headers });
   if (response.status === 304) {
@@ -488,6 +491,8 @@ function showAuth(message = "", clearSaved = true) {
   els.appShell.classList.remove("flex");
   els.authMessage.textContent = message;
   els.rememberLogin.checked = Boolean(!clearSaved && previousSession?.remember);
+  els.debugAccessKey.value = "";
+  els.debugLoginAccess.open = false;
   if (!clearSaved && previousSession?.userId) {
     els.profileName.value = previousSession.userId;
     els.profilePin.value = previousSession.pin || "";
@@ -604,7 +609,7 @@ async function renderProfileOptions() {
   renderIcons();
 }
 
-async function openProfile(name, pin) {
+async function openProfile(name, pin, debugKey = "") {
   const cleanName = name.trim();
   const id = normalizeProfileName(cleanName);
   if (!id) {
@@ -615,11 +620,13 @@ async function openProfile(name, pin) {
   try {
     const payload = await api("/api/login", {
       method: "POST",
-      body: JSON.stringify({ name: cleanName, pin }),
+      body: JSON.stringify({ name: cleanName, pin, debugKey: String(debugKey || "") }),
     });
+    saveSession(payload.user.id, pin, els.rememberLogin.checked, debugKey);
     applyServerState(payload);
-    saveSession(currentUser.id, pin, els.rememberLogin.checked);
     els.profilePin.value = "";
+    els.debugAccessKey.value = "";
+    els.debugLoginAccess.open = false;
     showApp();
   } catch (error) {
     els.authMessage.textContent = error.message;
@@ -1864,7 +1871,7 @@ els.settingsForm.addEventListener("submit", async (event) => {
 
 els.loginForm.addEventListener("submit", async (event) => {
   event.preventDefault();
-  await openProfile(els.profileName.value, els.profilePin.value);
+  await openProfile(els.profileName.value, els.profilePin.value, els.debugAccessKey.value);
 });
 
 els.profilePickerToggle.addEventListener("click", () => {
