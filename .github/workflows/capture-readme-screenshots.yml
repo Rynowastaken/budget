@@ -1,0 +1,75 @@
+name: Capture README screenshots
+
+on:
+  push:
+    branches:
+      - main
+    paths:
+      - ".github/workflows/capture-readme-screenshots.yml"
+      - "scripts/capture-readme-screenshots.mjs"
+
+permissions:
+  contents: write
+
+jobs:
+  capture:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Check out repository
+        uses: actions/checkout@v4
+
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: "20"
+
+      - name: Install screenshot browser
+        run: |
+          npm install --no-save playwright@1.56.1
+          npx playwright install --with-deps chromium
+
+      - name: Start Budget
+        run: |
+          rm -rf data uploads
+          node server.js > /tmp/budget-server.log 2>&1 &
+          echo $! > /tmp/budget-server.pid
+          for i in {1..30}; do
+            if curl -fsS http://127.0.0.1:4173 >/dev/null; then
+              exit 0
+            fi
+            sleep 1
+          done
+          cat /tmp/budget-server.log
+          exit 1
+
+      - name: Capture the real app UI
+        run: node scripts/capture-readme-screenshots.mjs
+
+      - name: Stop Budget
+        if: always()
+        run: |
+          if [ -f /tmp/budget-server.pid ]; then
+            kill "$(cat /tmp/budget-server.pid)" 2>/dev/null || true
+          fi
+
+      - name: Replace README screenshots
+        run: |
+          rm -f docs/screenshots/quota.webp docs/screenshots/activity.webp
+          python - <<'PY'
+          from pathlib import Path
+          path = Path("README.md")
+          text = path.read_text()
+          text = text.replace("docs/screenshots/quota.webp", "docs/screenshots/quota.png")
+          text = text.replace("docs/screenshots/activity.webp", "docs/screenshots/activity.png")
+          path.write_text(text)
+          PY
+
+          git config user.name "github-actions[bot]"
+          git config user.email "41898282+github-actions[bot]@users.noreply.github.com"
+          git add README.md docs/screenshots
+          if git diff --cached --quiet; then
+            exit 0
+          fi
+          git commit -m "Refresh README screenshots [skip ci]"
+          git push
