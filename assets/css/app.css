@@ -469,6 +469,87 @@ header.glass {
   box-shadow: 0 1px 2px rgba(0, 0, 0, 0.18);
 }
 
+.auth-debug-access {
+  background: rgba(255, 255, 255, 0.045);
+  border: 1px solid var(--glass-border);
+  border-radius: 14px;
+  overflow: hidden;
+}
+
+.auth-debug-summary {
+  align-items: center;
+  cursor: pointer;
+  display: flex;
+  gap: 0.75rem;
+  justify-content: space-between;
+  list-style: none;
+  min-height: 54px;
+  padding: 0.55rem 0.65rem;
+}
+
+.auth-debug-summary::-webkit-details-marker {
+  display: none;
+}
+
+.auth-debug-summary-main {
+  align-items: center;
+  display: flex;
+  gap: 0.7rem;
+  min-width: 0;
+}
+
+.auth-debug-summary-main > span:last-child {
+  display: grid;
+  gap: 0.05rem;
+  min-width: 0;
+}
+
+.auth-debug-summary strong {
+  color: var(--foreground);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.auth-debug-summary small {
+  color: var(--muted);
+  font-size: 0.68rem;
+  font-weight: 600;
+}
+
+.auth-debug-icon {
+  align-items: center;
+  background: var(--pink-soft);
+  border: 1px solid var(--pink-ring);
+  border-radius: 9px;
+  color: var(--primary);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.auth-debug-icon svg,
+.auth-debug-chevron {
+  height: 17px;
+  width: 17px;
+}
+
+.auth-debug-chevron {
+  color: var(--muted);
+  flex-shrink: 0;
+  transition: transform 0.18s ease;
+}
+
+.auth-debug-access[open] .auth-debug-chevron {
+  transform: rotate(180deg);
+}
+
+.auth-debug-body {
+  border-top: 1px solid rgba(255, 255, 255, 0.09);
+  padding: 0.85rem;
+}
+
 .remember-switch {
   align-items: center;
   background: rgba(255, 255, 255, 0.08);
