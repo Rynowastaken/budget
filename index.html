@@ -653,6 +653,29 @@
       </section>
     </dialog>
 
+    <dialog id="logoutConfirmDialog" class="confirm-dialog" aria-labelledby="logoutConfirmTitle" aria-describedby="logoutConfirmDescription">
+      <section class="confirm-dialog-card glass">
+        <div class="confirm-dialog-icon" aria-hidden="true">
+          <i data-lucide="log-out"></i>
+        </div>
+        <div class="confirm-dialog-copy">
+          <h2 id="logoutConfirmTitle" class="text-xl font-semibold">Log out?</h2>
+          <p id="logoutConfirmDescription" class="mt-2 text-sm font-medium" style="color: var(--muted)">
+            You’ll return to the profile screen and this device will stop opening the current profile automatically. Your saved budget, expenses, and profile data will stay intact.
+          </p>
+        </div>
+        <div class="confirm-dialog-actions">
+          <button id="logoutConfirmCancel" class="confirm-dialog-button focus-ring" type="button">
+            Cancel
+          </button>
+          <button id="logoutConfirmSubmit" class="confirm-dialog-button confirm-dialog-danger focus-ring" type="button">
+            <i data-lucide="log-out" aria-hidden="true"></i>
+            <span>Log out</span>
+          </button>
+        </div>
+      </section>
+    </dialog>
+
     <dialog id="resetConfirmDialog" class="confirm-dialog" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmDescription">
       <section class="confirm-dialog-card glass">
         <div class="confirm-dialog-icon" aria-hidden="true">
@@ -676,6 +699,6 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260922-56"></script>
+    <script src="/assets/js/app.js?v=20260922-58"></script>
   </body>
 </html>
