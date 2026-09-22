@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-48" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-50" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -74,28 +74,55 @@
         </div>
         <div class="relative flex shrink-0 items-center justify-end">
           <input id="backgroundInput" type="file" accept="image/*" class="sr-only" />
-          <div id="headerMenu" class="relative max-w-[52vw] sm:max-w-none">
-            <button id="headerMenuToggle" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Open menu" title="Open menu" aria-expanded="false" aria-controls="headerMenuPanel">
+          <div id="headerMenu" class="relative">
+            <button id="headerMenuToggle" class="header-menu-toggle focus-ring" type="button" aria-label="Open menu" title="Open menu" aria-expanded="false" aria-controls="headerMenuPanel">
               <i data-lucide="menu" aria-hidden="true"></i>
             </button>
-            <div id="headerMenuPanel" class="header-menu-panel flex-wrap justify-end" aria-hidden="true">
-              <button id="openSettings" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Open settings" title="Settings">
-                <i data-lucide="settings" aria-hidden="true"></i>
+            <div id="headerMenuPanel" class="header-menu-panel" role="menu" aria-label="Profile menu" aria-hidden="true">
+              <div class="header-menu-section-label">Appearance</div>
+              <button id="openSettings" class="header-menu-item focus-ring" type="button" role="menuitem">
+                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="settings"></i></span>
+                <span class="header-menu-item-copy">
+                  <strong>Settings</strong>
+                  <small>Theme and debug options</small>
+                </span>
               </button>
-              <button id="uploadBackground" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Upload background" title="Upload background">
-                <i data-lucide="image-up" aria-hidden="true"></i>
+              <button id="uploadBackground" class="header-menu-item focus-ring" type="button" role="menuitem">
+                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="image-up"></i></span>
+                <span class="header-menu-item-copy">
+                  <strong>Upload background</strong>
+                  <small>Choose a new backdrop</small>
+                </span>
               </button>
-              <button id="clearBackground" class="focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Clear background" title="Clear background">
-                <i data-lucide="image-minus" aria-hidden="true"></i>
+              <button id="clearBackground" class="header-menu-item focus-ring" type="button" role="menuitem">
+                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="image-minus"></i></span>
+                <span class="header-menu-item-copy">
+                  <strong>Clear background</strong>
+                  <small>Return to the default look</small>
+                </span>
               </button>
-              <button id="resetData" class="focus-ring icon-control rounded-lg text-white shadow-sm" style="background: var(--danger)" type="button" aria-label="Reset profile data" title="Reset profile data">
-                <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+              <div class="header-menu-divider"></div>
+              <div class="header-menu-section-label">Profile</div>
+              <button id="resetData" class="header-menu-item header-menu-item-danger focus-ring" type="button" role="menuitem">
+                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="rotate-ccw"></i></span>
+                <span class="header-menu-item-copy">
+                  <strong>Reset profile data</strong>
+                  <small>Clear budget, expenses, and theme</small>
+                </span>
               </button>
-              <button id="switchProfile" class="danger-control focus-ring icon-control rounded-lg border shadow-sm" type="button" aria-label="Log out" title="Log out">
-                <i data-lucide="log-out" aria-hidden="true"></i>
+              <button id="switchProfile" class="header-menu-item header-menu-item-danger focus-ring" type="button" role="menuitem">
+                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="log-out"></i></span>
+                <span class="header-menu-item-copy">
+                  <strong>Log out</strong>
+                  <small>Return to profile selection</small>
+                </span>
               </button>
-              <button id="changeServer" class="android-only focus-ring icon-control rounded-lg border border-black/10 bg-white/75 shadow-sm" type="button" aria-label="Change server" title="Change server">
-                <i data-lucide="server-cog" aria-hidden="true"></i>
+              <button id="changeServer" class="android-only header-menu-item focus-ring" type="button" role="menuitem">
+                <span class="header-menu-item-icon" aria-hidden="true"><i data-lucide="server-cog"></i></span>
+                <span class="header-menu-item-copy">
+                  <strong>Change server</strong>
+                  <small>Use another Budget server</small>
+                </span>
               </button>
             </div>
           </div>
