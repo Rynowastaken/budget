@@ -18,7 +18,7 @@
     </script>
     <script src="/vendor/tailwindcss-3.4.17.js"></script>
     <script src="/vendor/lucide-1.24.0.min.js"></script>
-    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-52" />
+    <link rel="stylesheet" href="/assets/css/app.css?v=20260922-53" />
   </head>
   <body class="min-h-screen">
     <section id="authScreen" class="mx-auto flex min-h-screen w-full max-w-md items-center px-4 py-8">
@@ -541,6 +541,29 @@
       </section>
     </dialog>
 
-    <script src="/assets/js/app.js?v=20260922-49"></script>
+    <dialog id="resetConfirmDialog" class="confirm-dialog" aria-labelledby="resetConfirmTitle" aria-describedby="resetConfirmDescription">
+      <section class="confirm-dialog-card glass">
+        <div class="confirm-dialog-icon" aria-hidden="true">
+          <i data-lucide="rotate-ccw"></i>
+        </div>
+        <div class="confirm-dialog-copy">
+          <h2 id="resetConfirmTitle" class="text-xl font-semibold">Reset profile data?</h2>
+          <p id="resetConfirmDescription" class="mt-2 text-sm font-medium" style="color: var(--muted)">
+            This will clear your budget, expenses, and theme for this profile. This action cannot be undone.
+          </p>
+        </div>
+        <div class="confirm-dialog-actions">
+          <button id="resetConfirmCancel" class="confirm-dialog-button focus-ring" type="button">
+            Cancel
+          </button>
+          <button id="resetConfirmSubmit" class="confirm-dialog-button confirm-dialog-danger focus-ring" type="button">
+            <i data-lucide="rotate-ccw" aria-hidden="true"></i>
+            <span>Reset profile</span>
+          </button>
+        </div>
+      </section>
+    </dialog>
+
+    <script src="/assets/js/app.js?v=20260922-53"></script>
   </body>
 </html>
