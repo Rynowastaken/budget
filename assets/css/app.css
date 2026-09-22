@@ -1258,32 +1258,161 @@ nav[role="tablist"].glass {
 #headerMenu {
   align-items: center;
   display: flex;
-  gap: 6px;
+}
+
+.header-menu-toggle {
+  align-items: center;
+  background: rgba(255, 255, 255, 0.075);
+  border: 1px solid var(--glass-border);
+  border-radius: 12px;
+  color: var(--foreground);
+  display: inline-flex;
+  height: 42px;
+  justify-content: center;
+  min-height: 42px;
+  transition: background 0.16s ease, border-color 0.16s ease, color 0.16s ease, transform 0.16s ease;
+  width: 42px;
+}
+
+.header-menu-toggle:hover,
+#headerMenu.is-open .header-menu-toggle {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-border-hi);
+}
+
+.header-menu-toggle:hover {
+  transform: translateY(-1px);
+}
+
+.header-menu-toggle svg {
+  height: 20px;
+  width: 20px;
 }
 
 #headerMenu .header-menu-panel {
-  display: flex;
-  gap: 6px;
-  max-width: calc(100vw - 6rem);
+  background:
+    linear-gradient(rgba(22, 16, 28, 0.08), rgba(22, 16, 28, 0.08)),
+    rgba(18, 14, 22, 0.96);
+  border: 1px solid var(--glass-border-hi);
+  border-radius: 16px;
+  box-shadow: 0 18px 48px rgba(0, 0, 0, 0.38);
+  box-sizing: border-box;
   opacity: 0;
+  padding: 0.45rem;
   pointer-events: none;
   position: absolute;
-  right: calc(100% + 6px);
-  top: 50%;
-  transform: translate(12px, -50%) scale(0.96);
-  transform-origin: right center;
-  transition: opacity 0.2s ease, transform 0.24s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.24s;
+  right: 0;
+  top: calc(100% + 0.6rem);
+  transform: translateY(-8px) scale(0.97);
+  transform-origin: top right;
+  transition: opacity 0.18s ease, transform 0.22s cubic-bezier(0.22, 1, 0.36, 1), visibility 0s linear 0.22s;
   visibility: hidden;
-  width: max-content;
-  z-index: 20;
+  width: min(18rem, calc(100vw - 1.5rem));
+  z-index: 50;
+  backdrop-filter: blur(22px) saturate(170%);
 }
 
 #headerMenu.is-open .header-menu-panel {
   opacity: 1;
   pointer-events: auto;
-  transform: translate(0, -50%) scale(1);
+  transform: translateY(0) scale(1);
   transition-delay: 0s;
   visibility: visible;
+}
+
+.header-menu-section-label {
+  color: var(--faint);
+  font-size: 0.65rem;
+  font-weight: 750;
+  letter-spacing: 0.08em;
+  padding: 0.45rem 0.7rem 0.3rem;
+  text-transform: uppercase;
+}
+
+.header-menu-divider {
+  background: rgba(255, 255, 255, 0.09);
+  height: 1px;
+  margin: 0.35rem 0.45rem;
+}
+
+.header-menu-item {
+  align-items: center;
+  background: transparent;
+  border: 1px solid transparent;
+  border-radius: 11px;
+  color: var(--foreground);
+  display: flex;
+  gap: 0.7rem;
+  min-height: 54px;
+  padding: 0.55rem 0.65rem;
+  text-align: left;
+  transition: background 0.16s ease, border-color 0.16s ease, transform 0.16s ease;
+  width: 100%;
+}
+
+.header-menu-item:hover,
+.header-menu-item:focus-visible {
+  background: var(--glass-hover-bg);
+  border-color: var(--glass-border);
+}
+
+.header-menu-item:hover {
+  transform: translateY(-1px);
+}
+
+.header-menu-item-icon {
+  align-items: center;
+  background: var(--pink-soft);
+  border: 1px solid var(--pink-ring);
+  border-radius: 9px;
+  color: var(--primary);
+  display: inline-flex;
+  flex-shrink: 0;
+  height: 34px;
+  justify-content: center;
+  width: 34px;
+}
+
+.header-menu-item-icon svg {
+  height: 17px;
+  width: 17px;
+}
+
+.header-menu-item-copy {
+  display: grid;
+  gap: 0.08rem;
+  min-width: 0;
+}
+
+.header-menu-item-copy strong {
+  font-size: 0.84rem;
+  font-weight: 700;
+  line-height: 1.2;
+}
+
+.header-menu-item-copy small {
+  color: var(--muted);
+  font-size: 0.69rem;
+  font-weight: 600;
+  line-height: 1.25;
+}
+
+.header-menu-item-danger .header-menu-item-icon {
+  background: rgba(240, 113, 120, 0.11);
+  border-color: rgba(240, 113, 120, 0.28);
+  color: var(--danger);
+}
+
+.header-menu-item-danger:hover,
+.header-menu-item-danger:focus-visible {
+  background: rgba(240, 113, 120, 0.075);
+  border-color: rgba(240, 113, 120, 0.16);
+}
+
+@media (max-width: 639px) {
+  #headerMenu .header-menu-panel {
+    width: min(17rem, calc(100vw - 1.5rem));
+  }
 }
 
 #settingsDialog {
