@@ -1318,13 +1318,16 @@ label:has(#rolloverEnabled) {
     padding: 0.15rem 0 0.3rem;
     scrollbar-color: var(--primary) rgba(255, 255, 255, 0.06);
     scrollbar-width: thin;
-    touch-action: pan-x pan-y;
+    touch-action: pan-y;
     user-select: none;
   }
 
-  .activity-heatmap-viewport.is-pinching {
+  .activity-heatmap-viewport.is-pinching,
+  .activity-heatmap-viewport.is-panning {
     cursor: grabbing;
   }
+
+  .activity-heatmap-viewport.is-panning .activity-heatmap,
 
   .activity-heatmap {
     --heatmap-mobile-cell-size: clamp(20px, 6vw, 26px);
