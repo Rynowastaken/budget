@@ -16,7 +16,7 @@ const imageExtensions = [".png", ".jpg", ".jpeg", ".gif", ".webp", ".svg", ".avi
 const staticCache = new Map();
 const serverInstanceId = crypto.randomUUID?.() || crypto.randomBytes(16).toString("hex");
 const serverStartedAt = Date.now();
-const debugAccessKey = String(process.env.BUDGET_DEBUG_KEY || "");
+const debugAccessKey = String(crypto.randomInt(0, 1_000_000)).padStart(6, "0");
 let dbCache = null;
 let restartScheduled = false;
 
@@ -236,7 +236,7 @@ async function handleApi(req, res) {
       const pin = String(body.pin || "");
       const requestedDebugKey = String(body.debugKey || "");
       if (requestedDebugKey && !debugKeyMatches(requestedDebugKey)) {
-        sendError(res, 403, debugAccessKey ? "Wrong debug access key." : "Debug access is not configured on this server.");
+        sendError(res, 403, "Wrong debug access code.");
         return;
       }
       const id = normalizeProfileName(name);
@@ -640,4 +640,6 @@ const server = http.createServer((req, res) => {
 
 server.listen(port, host, () => {
   console.log(`Finance Manager server running at http://${host}:${port}`);
+  console.log(`Debug access code: ${debugAccessKey}`);
+  console.log("A new Debug access code is generated every time the server starts.");
 });
