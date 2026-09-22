@@ -160,6 +160,9 @@ const els = {
   uploadBackground: document.getElementById("uploadBackground"),
   clearBackground: document.getElementById("clearBackground"),
   resetData: document.getElementById("resetData"),
+  resetConfirmDialog: document.getElementById("resetConfirmDialog"),
+  resetConfirmCancel: document.getElementById("resetConfirmCancel"),
+  resetConfirmSubmit: document.getElementById("resetConfirmSubmit"),
   switchProfile: document.getElementById("switchProfile"),
   changeServer: document.getElementById("changeServer"),
   changeServerAuth: document.getElementById("changeServerAuth"),
@@ -2269,12 +2272,48 @@ els.clearBackground.addEventListener("click", async () => {
   render();
 });
 
-els.resetData.addEventListener("click", async () => {
+function openResetConfirmDialog() {
   setHeaderMenuOpen(false);
-  if (!confirm("Reset budget, expenses, and theme?")) return;
-  state = { ...defaults, expenses: [] };
-  await saveState({ includeBackground: true });
-  render();
+  if (!els.resetConfirmDialog.open) {
+    els.resetConfirmDialog.showModal();
+    renderIcons();
+  }
+  requestAnimationFrame(() => els.resetConfirmCancel.focus());
+}
+
+function closeResetConfirmDialog() {
+  if (!els.resetConfirmDialog.open) return;
+  els.resetConfirmDialog.close();
+  els.resetData.focus();
+}
+
+els.resetData.addEventListener("click", openResetConfirmDialog);
+
+els.resetConfirmCancel.addEventListener("click", closeResetConfirmDialog);
+
+els.resetConfirmSubmit.addEventListener("click", async () => {
+  els.resetConfirmSubmit.disabled = true;
+  try {
+    state = { ...defaults, expenses: [] };
+    await saveState({ includeBackground: true });
+    closeResetConfirmDialog();
+    render();
+    showAppMessage("Profile data reset.");
+  } catch (error) {
+    showAppMessage("Could not reset profile data: " + error.message, "error");
+  } finally {
+    els.resetConfirmSubmit.disabled = false;
+  }
+});
+
+els.resetConfirmDialog.addEventListener("cancel", (event) => {
+  event.preventDefault();
+  closeResetConfirmDialog();
+});
+
+els.resetConfirmDialog.addEventListener("click", (event) => {
+  if (event.target !== els.resetConfirmDialog) return;
+  closeResetConfirmDialog();
 });
 
 els.switchProfile.addEventListener("click", () => {
