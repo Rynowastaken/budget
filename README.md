@@ -147,15 +147,15 @@ There is no frontend build step. Edit, save, and refresh.
 
 ### Debug access
 
-Every time Budget starts, the server generates a new **6-digit Debug access code** and prints it in the terminal:
+Every time Budget starts, the server prints a new **6-digit admin code**:
 
 ```text
 Debug access code: 123456
 ```
 
-On the login screen, expand **Debug access** and enter the current code. Leave it blank for a normal login.
+With the page focused and **not typing in an input**, type those six digits. The correct code opens the Debug user manager, where permanent Debug access can be enabled or revoked for individual profiles.
 
-The code changes whenever the server restarts and is only kept for the current browser session, even when **Remember me** is enabled.
+The admin code changes on every server restart.
 
 Quick syntax check:
 
